@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administration — JPC Romans</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --gold: #c9a84c; --cream: #f0ead8; --muted: rgba(240,234,216,0.5); --border: rgba(201,168,76,0.15); --danger: #c0392b; --success: #27ae60; --panel: #111111; --panel2: #161616; }
+    body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: var(--cream); min-height: 100vh; }
+
+    header { background: #0d0d0d; border-bottom: 1px solid var(--border); padding: 20px 48px; display: flex; align-items: center; justify-content: space-between; }
+    .header-left h1 { font-size: 0.85rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--cream); font-weight: 400; }
+    .header-left span { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); }
+    .btn-preview { color: var(--muted); font-size: 0.68rem; letter-spacing: 0.15em; text-decoration: none; text-transform: uppercase; border: 1px solid var(--border); padding: 8px 16px; transition: color 0.2s, border-color 0.2s; }
+    .btn-preview:hover { color: var(--cream); border-color: rgba(201,168,76,0.4); }
+    .login-info { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; }
+
+    /* LOGIN */
+    #loginScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 65px); padding: 40px; }
+    .login-box { background: var(--panel); border: 1px solid var(--border); padding: 48px 40px; width: 100%; max-width: 380px; text-align: center; }
+    .login-box h2 { font-size: 0.85rem; letter-spacing: 0.28em; text-transform: uppercase; font-weight: 400; margin-bottom: 32px; }
+    .login-rule { width: 40px; height: 1px; background: var(--gold); margin: 0 auto 32px; }
+    .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; text-align: left; }
+    .form-field label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+    .form-field input { font-family: 'Inter', sans-serif; font-size: 0.9rem; background: #0a0a0a; border: 1px solid var(--border); padding: 10px 14px; outline: none; width: 100%; color: var(--cream); transition: border-color 0.2s; }
+    .form-field input:focus { border-color: rgba(201,168,76,0.5); }
+    .btn-login { width: 100%; background: var(--gold); color: #0a0a0a; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; padding: 13px; margin-top: 8px; transition: opacity 0.2s; font-weight: 500; }
+    .btn-login:hover { opacity: 0.85; }
+    .login-error { color: var(--danger); font-size: 0.75rem; margin-top: 12px; min-height: 20px; }
+
+    /* ADMIN */
+    #adminScreen { display: none; }
+    .admin-wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+    .section-title { font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; display: flex; align-items: center; gap: 16px; font-weight: 400; }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .preview-bar { background: var(--panel); border: 1px solid var(--border); padding: 14px 24px; margin-bottom: 32px; display: flex; align-items: center; justify-content: space-between; }
+    .preview-bar p { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.04em; }
+    .preview-bar a { color: var(--gold); font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; }
+
+    .btn-add { display: flex; align-items: center; gap: 10px; background: transparent; color: var(--cream); border: 1px solid var(--border); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 12px 24px; margin-bottom: 32px; transition: border-color 0.2s, color 0.2s; }
+    .btn-add:hover { border-color: rgba(201,168,76,0.5); color: var(--gold); }
+    .btn-add:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* CARD */
+    .book-editor { background: var(--panel); border: 1px solid var(--border); margin-bottom: 16px; overflow: hidden; animation: slideIn 0.3s ease; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    .book-editor-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: var(--panel2); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
+    .book-editor-header h3 { font-size: 0.85rem; letter-spacing: 0.08em; font-weight: 400; }
+    .book-editor-header-right { display: flex; align-items: center; gap: 16px; }
+    .badge { font-size: 0.65rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
+    .btn-delete-book { background: none; border: none; cursor: pointer; color: var(--danger); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; font-family: 'Inter', sans-serif; opacity: 0.5; transition: opacity 0.2s; }
+    .btn-delete-book:hover { opacity: 1; }
+    .collapse-icon { transition: transform 0.3s; color: var(--muted); font-size: 0.75rem; }
+    .book-editor.collapsed .collapse-icon { transform: rotate(-90deg); }
+    .book-editor-body { padding: 28px 24px; display: grid; grid-template-columns: 160px 1fr; gap: 28px; }
+    .book-editor.collapsed .book-editor-body { display: none; }
+
+    .cover-zone { display: flex; flex-direction: column; gap: 10px; }
+    .cover-preview { aspect-ratio: 2/3; width: 160px; border: 1px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 0.68rem; letter-spacing: 0.08em; cursor: pointer; position: relative; overflow: hidden; transition: border-color 0.2s; text-align: center; }
+    .cover-preview:hover { border-color: rgba(201,168,76,0.4); }
+    .cover-preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .cover-preview input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .cover-preview svg { width: 20px; height: 20px; opacity: 0.25; }
+    .cover-uploading { font-size: 0.68rem; color: var(--gold); letter-spacing: 0.08em; }
+    .btn-remove-img { background: none; border: none; cursor: pointer; color: var(--danger); font-size: 0.65rem; font-family: 'Inter', sans-serif; opacity: 0.5; transition: opacity 0.2s; padding: 0; text-align: left; }
+    .btn-remove-img:hover { opacity: 1; }
+
+    .fields { display: flex; flex-direction: column; gap: 16px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+    input[type=text], input[type=url], input[type=number], textarea { font-family: 'Inter', sans-serif; font-size: 0.9rem; color: var(--cream); background: #0a0a0a; border: 1px solid var(--border); padding: 10px 14px; outline: none; transition: border-color 0.2s; width: 100%; }
+    input[type=text]:focus, input[type=url]:focus, input[type=number]:focus, textarea:focus { border-color: rgba(201,168,76,0.5); }
+    textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+    .btn-save { background: var(--gold); color: #0a0a0a; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase; padding: 11px 22px; transition: opacity 0.2s; font-weight: 500; }
+    .btn-save:hover { opacity: 0.85; }
+    .btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+    .save-status { font-size: 0.72rem; color: var(--success); margin-left: 12px; opacity: 0; transition: opacity 0.4s; }
+    .save-status.show { opacity: 1; }
+    .btn-row { display: flex; align-items: center; }
+
+    .toast { position: fixed; bottom: 28px; right: 28px; background: #1a1a1a; border: 1px solid var(--border); color: var(--cream); padding: 12px 20px; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 999; }
+    .toast.show { opacity: 1; }
+    .toast.error { border-color: var(--danger); color: var(--danger); }
+
+    @media (max-width: 640px) {
+      header { padding: 16px 20px; }
+      .admin-wrap { padding: 24px 16px; }
+      .book-editor-body { grid-template-columns: 1fr; }
+      .cover-preview { width: 100%; aspect-ratio: 3/2; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <h1>JPC <span>/ Administration</span></h1>
+  </div>
+  <div style="display:flex;gap:16px;align-items:center">
+    <span class="login-info" id="loginInfo"></span>
+    <a class="btn-preview" href="romans.html" target="_blank">↗ Page Romans</a>
+  </div>
+</header>
+
+<div id="loginScreen">
+  <div class="login-box">
+    <h2>Espace Admin</h2>
+    <div class="login-rule"></div>
+    <div class="form-field">
+      <label>E-mail</label>
+      <input type="text" id="loginEmail" placeholder="votre@email.com" />
+    </div>
+    <div class="form-field">
+      <label>Mot de passe</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
+    </div>
+    <button class="btn-login" onclick="doLogin()">Se connecter</button>
+    <p class="login-error" id="loginError"></p>
+  </div>
+</div>
+
+<div id="adminScreen">
+  <div class="admin-wrap">
+    <div class="preview-bar">
+      <p>Modifications sauvegardées en temps réel sur Firebase.</p>
+      <a href="romans.html" target="_blank">Voir la page publique →</a>
+    </div>
+    <div class="section-title">Romans</div>
+    <button class="btn-add" id="btnAdd" onclick="addBook()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Ajouter un roman
+    </button>
+    <div id="booksList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { initializeApp }                          from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword,
+           onAuthStateChanged }                     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, getDocs,
+           addDoc, updateDoc, deleteDoc, doc,
+           orderBy, query, serverTimestamp }        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes,
+           getDownloadURL, deleteObject }           from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+  // 🔧 REMPLACEZ par votre config Firebase
+  const firebaseConfig = {
+    
+    // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCw5XJ3auEZ1CdHJnb3zyqQxDv4XqQ8pWw",
+  authDomain: "jpsite-1d0f6.firebaseapp.com",
+  projectId: "jpsite-1d0f6",
+  storageBucket: "jpsite-1d0f6.firebasestorage.app",
+  messagingSenderId: "923964453045",
+  appId: "1:923964453045:web:ff821d0772319219ee0efc",
+  measurementId: "G-6KEN026RC8"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+
+  };
+
+  const app     = initializeApp(firebaseConfig);
+  const auth    = getAuth(app);
+  const db      = getFirestore(app);
+  const storage = getStorage(app);
+  let books = [];
+
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminScreen').style.display = 'block';
+      document.getElementById('loginInfo').textContent = user.email;
+      loadBooks();
+    } else {
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('adminScreen').style.display = 'none';
+    }
+  });
+
+  window.doLogin = async () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass  = document.getElementById('loginPassword').value;
+    document.getElementById('loginError').textContent = '';
+    try { await signInWithEmailAndPassword(auth, email, pass); }
+    catch(e) { document.getElementById('loginError').textContent = 'Email ou mot de passe incorrect.'; }
+  };
+
+  async function loadBooks() {
+    try {
+      const q = query(collection(db, "romans"), orderBy("ordre", "asc"));
+      const snap = await getDocs(q);
+      books = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+      render();
+    } catch(e) { showToast('Erreur de chargement', true); }
+  }
+
+  window.addBook = async () => {
+    const btn = document.getElementById('btnAdd');
+    btn.disabled = true;
+    try {
+      const maxOrdre = books.length ? Math.max(...books.map(b => b.ordre || 0)) : 0;
+      const ref = await addDoc(collection(db, "romans"), { titre: 'Nouveau roman', resume: '', lienAchat: '', imageUrl: '', imagePath: '', ordre: maxOrdre + 1, createdAt: serverTimestamp() });
+      books.push({ _docId: ref.id, titre: 'Nouveau roman', resume: '', lienAchat: '', imageUrl: '', imagePath: '', ordre: maxOrdre + 1 });
+      render();
+      setTimeout(() => { const el = document.querySelector(`[data-docid="${ref.id}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+    } catch(e) { showToast('Erreur lors de l\'ajout', true); }
+    btn.disabled = false;
+  };
+
+  window.saveBook = async (docId) => {
+    const card = document.querySelector(`[data-docid="${docId}"]`);
+    const titre = card.querySelector('.f-titre').value;
+    const resume = card.querySelector('.f-resume').value;
+    const lienAchat = card.querySelector('.f-lien').value;
+    const ordre = parseInt(card.querySelector('.f-ordre').value) || 1;
+    const btn = card.querySelector('.btn-save');
+    const status = card.querySelector('.save-status');
+    btn.disabled = true;
+    try {
+      await updateDoc(doc(db, "romans", docId), { titre, resume, lienAchat, ordre });
+      const b = books.find(b => b._docId === docId);
+      if (b) { b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; }
+      card.querySelector('h3').textContent = titre || 'Roman sans titre';
+      status.textContent = 'Sauvegardé ✓'; status.classList.add('show');
+      setTimeout(() => status.classList.remove('show'), 2500);
+    } catch(e) { showToast('Erreur de sauvegarde', true); }
+    btn.disabled = false;
+  };
+
+  window.deleteBook = async (docId) => {
+    if (!confirm('Supprimer ce roman définitivement ?')) return;
+    try {
+      const b = books.find(b => b._docId === docId);
+      if (b?.imagePath) { try { await deleteObject(ref(storage, b.imagePath)); } catch(_) {} }
+      await deleteDoc(doc(db, "romans", docId));
+      books = books.filter(b => b._docId !== docId);
+      document.querySelector(`[data-docid="${docId}"]`)?.remove();
+      showToast('Roman supprimé');
+    } catch(e) { showToast('Erreur lors de la suppression', true); }
+  };
+
+  window.uploadImage = async (docId, input) => {
+    const file = input.files[0]; if (!file) return;
+    const statusEl = document.getElementById('upload-status-' + docId);
+    const previewEl = document.getElementById('cover-preview-' + docId);
+    statusEl.textContent = 'Envoi en cours…';
+    try {
+      const b = books.find(b => b._docId === docId);
+      if (b?.imagePath) { try { await deleteObject(ref(storage, b.imagePath)); } catch(_) {} }
+      const path = `covers/${docId}_${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, path);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      await updateDoc(doc(db, "romans", docId), { imageUrl: url, imagePath: path });
+      if (b) { b.imageUrl = url; b.imagePath = path; }
+      previewEl.innerHTML = `<img src="${url}" alt="Couverture" /><input type="file" accept="image/*" onchange="uploadImage('${docId}', this)" />`;
+      document.getElementById('btn-remove-' + docId).style.display = 'block';
+      statusEl.textContent = ''; showToast('Image mise à jour');
+    } catch(e) { statusEl.textContent = 'Erreur d\'upload.'; console.error(e); }
+  };
+
+  window.removeImage = async (docId) => {
+    if (!confirm('Supprimer l\'image ?')) return;
+    try {
+      const b = books.find(b => b._docId === docId);
+      if (b?.imagePath) { try { await deleteObject(ref(storage, b.imagePath)); } catch(_) {} }
+      await updateDoc(doc(db, "romans", docId), { imageUrl: '', imagePath: '' });
+      if (b) { b.imageUrl = ''; b.imagePath = ''; }
+      const previewEl = document.getElementById('cover-preview-' + docId);
+      previewEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 21V9"/></svg><span>Cliquer pour<br>ajouter une image</span><input type="file" accept="image/*" onchange="uploadImage('${docId}', this)" />`;
+      document.getElementById('btn-remove-' + docId).style.display = 'none';
+      showToast('Image supprimée');
+    } catch(e) { showToast('Erreur', true); }
+  };
+
+  window.toggleCollapse = (docId) => { document.querySelector(`[data-docid="${docId}"]`).classList.toggle('collapsed'); };
+
+  function render() {
+    const list = document.getElementById('booksList');
+    if (!books.length) { list.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;padding:20px 0">Aucun roman. Cliquez sur "Ajouter un roman".</p>'; return; }
+    list.innerHTML = books.map((b, i) => `
+      <div class="book-editor" data-docid="${b._docId}">
+        <div class="book-editor-header" onclick="toggleCollapse('${b._docId}')">
+          <h3>${esc(b.titre) || 'Roman sans titre'}</h3>
+          <div class="book-editor-header-right">
+            <span class="badge">Roman ${i+1}</span>
+            <button class="btn-delete-book" onclick="event.stopPropagation(); deleteBook('${b._docId}')">Supprimer</button>
+            <span class="collapse-icon">▾</span>
+          </div>
+        </div>
+        <div class="book-editor-body">
+          <div class="cover-zone">
+            <div class="cover-preview" id="cover-preview-${b._docId}">
+              ${b.imageUrl
+                ? `<img src="${b.imageUrl}" alt="Couverture" /><input type="file" accept="image/*" onchange="uploadImage('${b._docId}', this)" />`
+                : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 21V9"/></svg><span>Cliquer pour<br>ajouter une image</span><input type="file" accept="image/*" onchange="uploadImage('${b._docId}', this)" />`}
+            </div>
+            <p class="cover-uploading" id="upload-status-${b._docId}"></p>
+            <button class="btn-remove-img" id="btn-remove-${b._docId}" onclick="removeImage('${b._docId}')" style="display:${b.imageUrl ? 'block' : 'none'}">✕ Retirer l'image</button>
+            <small style="font-size:0.62rem;color:var(--muted);letter-spacing:0.06em">Format portrait recommandé</small>
+          </div>
+          <div class="fields">
+            <div class="field">
+              <label>Titre</label>
+              <input type="text" class="f-titre" value="${esc(b.titre)}" placeholder="Titre du roman…" />
+            </div>
+            <div class="field">
+              <label>Résumé</label>
+              <textarea class="f-resume" placeholder="Résumé…">${esc(b.resume)}</textarea>
+            </div>
+            <div class="field">
+              <label>Lien d'achat (URL)</label>
+              <input type="url" class="f-lien" value="${esc(b.lienAchat)}" placeholder="https://amazon.fr/…" />
+            </div>
+            <div class="field">
+              <label>Ordre d'affichage</label>
+              <input type="number" class="f-ordre" value="${b.ordre || i+1}" min="1" style="width:80px" />
+            </div>
+            <div class="btn-row">
+              <button class="btn-save" onclick="saveBook('${b._docId}')">Sauvegarder</button>
+              <span class="save-status"></span>
+            </div>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function showToast(msg, isError=false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => t.className = 'toast', 3000);
+  }
+</script>
+</body>
+</html>

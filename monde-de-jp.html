@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Le monde de JP — Jean-Pierre Chiron</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--gold:#c9a84c;--cream:#f0ead8;--muted:rgba(240,234,216,0.5)}
+    html,body{height:100%}
+    body{font-family:'Inter',sans-serif;background:#0a0a0a;color:var(--cream);min-height:100vh;display:flex;flex-direction:column}
+    nav{display:flex;align-items:center;justify-content:space-between;padding:36px 56px;border-bottom:1px solid rgba(201,168,76,0.15)}
+    .nav-logo{font-size:0.85rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--cream);text-decoration:none}
+    .nav-links{display:flex;gap:40px;list-style:none}
+    .nav-links a{font-size:0.72rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding-bottom:3px;border-bottom:1px solid transparent;transition:color 0.25s,border-color 0.25s}
+    .nav-links a:hover,.nav-links a.active{color:var(--cream);border-bottom-color:var(--gold)}
+    main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px}
+    h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:300;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:20px}
+    .divider{width:40px;height:1px;background:var(--gold);margin:24px auto}
+    p{color:var(--muted);font-size:0.9rem;letter-spacing:0.06em;line-height:1.8}
+    footer{text-align:center;padding:28px;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(240,234,216,0.2);border-top:1px solid rgba(201,168,76,0.1)}
+    @media(max-width:600px){nav{padding:24px 28px}.nav-links{gap:20px}}
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-logo" href="index.html">JPC</a>
+    <ul class="nav-links">
+      <li><a href="monde-de-jp.html" class="active">Le monde de JP</a></li>
+      <li><a href="actualites.html">Actualités</a></li>
+      <li><a href="romans.html">Romans</a></li>
+    </ul>
+  </nav>
+  <main>
+    <h1>Le monde de JP</h1>
+    <div class="divider"></div>
+    <p>Cette page est en cours de construction.<br>Revenez bientôt.</p>
+  </main>
+  <footer>&copy; Jean-Pierre Chiron</footer>
+</body>
+</html>

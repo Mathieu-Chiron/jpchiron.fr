@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Romans — Jean-Pierre Chiron</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --gold: #c9a84c; --cream: #f0ead8; --muted: rgba(240,234,216,0.5); --border: rgba(201,168,76,0.15); }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: var(--cream); min-height: 100vh; display: flex; flex-direction: column; }
+
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 36px 56px; border-bottom: 1px solid var(--border); }
+    .nav-logo { font-size: 0.85rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--cream); text-decoration: none; }
+    .nav-links { display: flex; gap: 40px; list-style: none; }
+    .nav-links a { font-size: 0.72rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--muted); text-decoration: none; padding-bottom: 3px; border-bottom: 1px solid transparent; transition: color 0.25s, border-color 0.25s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--cream); border-bottom-color: var(--gold); }
+
+    header { text-align: center; padding: 72px 60px 56px; border-bottom: 1px solid var(--border); }
+    header h1 { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 300; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 12px; }
+    header p { font-size: 0.85rem; color: var(--muted); letter-spacing: 0.1em; }
+    .header-rule { width: 40px; height: 1px; background: var(--gold); margin: 24px auto 0; }
+
+    .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 120px 40px; gap: 20px; }
+    .spinner { width: 28px; height: 28px; border: 1px solid rgba(201,168,76,0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.1em; }
+
+    .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 48px 40px; padding: 72px 56px; max-width: 1200px; margin: 0 auto; width: 100%; }
+    .book-card { display: flex; flex-direction: column; animation: fadeUp 0.7s ease both; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .book-cover-wrap { position: relative; overflow: hidden; aspect-ratio: 2/3; box-shadow: 0 16px 48px rgba(0,0,0,0.6); transition: transform 0.4s ease, box-shadow 0.4s ease; }
+    .book-card:hover .book-cover-wrap { transform: translateY(-6px); box-shadow: 0 24px 60px rgba(0,0,0,0.8); }
+    .book-cover-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .book-cover-placeholder { width: 100%; height: 100%; background: #141414; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--muted); text-align: center; padding: 24px; }
+    .book-cover-placeholder span { font-size: 0.85rem; letter-spacing: 0.1em; font-weight: 300; }
+    .book-cover-wrap::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(to right, rgba(0,0,0,0.5), transparent); z-index: 1; }
+
+    .book-info { padding: 20px 0 0; flex: 1; display: flex; flex-direction: column; }
+    .book-title { font-size: 1rem; font-weight: 500; letter-spacing: 0.06em; margin-bottom: 4px; line-height: 1.4; }
+    .book-author { font-size: 0.72rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; }
+    .book-summary { font-size: 0.85rem; line-height: 1.8; color: var(--muted); flex: 1; margin-bottom: 18px; }
+    .book-buy { display: inline-flex; align-items: center; gap: 8px; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); text-decoration: none; padding-bottom: 3px; border-bottom: 1px solid transparent; transition: color 0.25s, border-color 0.25s; align-self: flex-start; }
+    .book-buy:hover { color: var(--cream); border-bottom-color: var(--gold); }
+    .book-buy::after { content: '→'; }
+    .book-buy-disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+
+    .empty-state { text-align: center; padding: 120px 40px; color: var(--muted); }
+    .empty-state p { font-size: 0.9rem; letter-spacing: 0.06em; line-height: 1.8; }
+
+    footer { text-align: center; padding: 28px; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(240,234,216,0.2); border-top: 1px solid var(--border); margin-top: auto; }
+
+    @media (max-width: 640px) {
+      nav { padding: 24px 28px; } .nav-links { gap: 20px; }
+      header, .books-grid { padding-left: 28px; padding-right: 28px; }
+      .books-grid { grid-template-columns: 1fr; gap: 40px; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a class="nav-logo" href="index.html">JPC</a>
+    <ul class="nav-links">
+      <li><a href="monde-de-jp.html">Le monde de JP</a></li>
+      <li><a href="actualites.html">Actualités</a></li>
+      <li><a href="romans.html" class="active">Romans</a></li>
+    </ul>
+  </nav>
+  <header>
+    <h1>Romans</h1>
+    <p>L'œuvre de Jean-Pierre Chiron</p>
+    <div class="header-rule"></div>
+  </header>
+  <main id="main">
+    <div class="loading" id="loading"><div class="spinner"></div><p>Chargement…</p></div>
+    <div class="books-grid" id="booksGrid" style="display:none"></div>
+    <div class="empty-state" id="emptyState" style="display:none"><p>Aucun roman pour le moment.<br>Revenez bientôt.</p></div>
+  </main>
+  <footer>&copy; Jean-Pierre Chiron</footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // 🔧 REMPLACEZ par votre config Firebase
+    const firebaseConfig = {
+      
+  apiKey: "AIzaSyCw5XJ3auEZ1CdHJnb3zyqQxDv4XqQ8pWw",
+  authDomain: "jpsite-1d0f6.firebaseapp.com",
+  projectId: "jpsite-1d0f6",
+  storageBucket: "jpsite-1d0f6.firebasestorage.app",
+  messagingSenderId: "923964453045",
+  appId: "1:923964453045:web:ff821d0772319219ee0efc",
+  measurementId: "G-6KEN026RC8"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+
+
+
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    async function loadBooks() {
+      try {
+        const q = query(collection(db, "romans"), orderBy("ordre", "asc"));
+        const snap = await getDocs(q);
+        const books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderBooks(books);
+      } catch(e) {
+        document.getElementById('loading').innerHTML = '<p style="color:#c0392b;padding:40px">Erreur de connexion Firebase.<br>Vérifiez la configuration.</p>';
+        console.error(e);
+      }
+    }
+
+    function renderBooks(books) {
+      document.getElementById('loading').style.display = 'none';
+      const grid = document.getElementById('booksGrid');
+      const empty = document.getElementById('emptyState');
+      if (!books.length) { empty.style.display = 'block'; return; }
+      grid.style.display = 'grid';
+      grid.innerHTML = books.map((b, i) => `
+        <article class="book-card" style="animation-delay:${i*0.12}s">
+          <div class="book-cover-wrap">
+            ${b.imageUrl
+              ? `<img src="${b.imageUrl}" alt="Couverture de ${b.titre}" />`
+              : `<div class="book-cover-placeholder"><span>${b.titre}</span><small>Jean-Pierre Chiron</small></div>`}
+          </div>
+          <div class="book-info">
+            <h2 class="book-title">${b.titre}</h2>
+            <p class="book-author">Jean-Pierre Chiron</p>
+            <p class="book-summary">${b.resume}</p>
+            ${b.lienAchat
+              ? `<a class="book-buy" href="${b.lienAchat}" target="_blank" rel="noopener">Acheter</a>`
+              : `<span class="book-buy book-buy-disabled">Bientôt disponible</span>`}
+          </div>
+        </article>`).join('');
+    }
+    loadBooks();
+  </script>
+</body>
+</html>
