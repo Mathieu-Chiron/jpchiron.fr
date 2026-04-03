@@ -164,14 +164,16 @@
   const db      = getFirestore(app);
   const storage = getStorage(app);
   let books = [];
+  let booksLoaded = false;
 
   onAuthStateChanged(auth, user => {
     if (user) {
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('adminScreen').style.display = 'block';
       document.getElementById('loginInfo').textContent = user.email;
-      loadBooks();
+      if (!booksLoaded) { booksLoaded = true; loadBooks(); }
     } else {
+      booksLoaded = false;
       document.getElementById('loginScreen').style.display = 'flex';
       document.getElementById('adminScreen').style.display = 'none';
     }
@@ -215,7 +217,7 @@
     try {
       const b = books.find(b => b._docId === docId);
       if (docId.startsWith('_new_')) {
-        const docRef = await addDoc(collection(db, "romans"), { titre, resume, lienAchat, ordre, imageUrl: '', imagePath: '', createdAt: serverTimestamp() });
+        const docRef = await addDoc(collection(db, "romans"), { titre, resume, lienAchat, ordre, imageUrl: b?.imageUrl || '', imagePath: b?.imagePath || '', createdAt: serverTimestamp() });
         if (b) { b._docId = docRef.id; b._isNew = false; b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; }
         card.setAttribute('data-docid', docRef.id);
         card.querySelectorAll('[onclick]').forEach(el => {
@@ -261,7 +263,9 @@
       const storageRef = ref(storage, path);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
-      await updateDoc(doc(db, "romans", docId), { imageUrl: url, imagePath: path });
+      if (!docId.startsWith('_new_')) {
+        await updateDoc(doc(db, "romans", docId), { imageUrl: url, imagePath: path });
+      }
       if (b) { b.imageUrl = url; b.imagePath = path; }
       previewEl.innerHTML = `<img src="${url}" alt="Couverture" /><input type="file" accept="image/*" onchange="uploadImage('${docId}', this)" />`;
       document.getElementById('btn-remove-' + docId).style.display = 'block';
