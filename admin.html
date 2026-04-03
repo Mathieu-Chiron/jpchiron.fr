@@ -194,17 +194,13 @@
     } catch(e) { showToast('Erreur de chargement', true); }
   }
 
-  window.addBook = async () => {
-    const btn = document.getElementById('btnAdd');
-    btn.disabled = true;
-    try {
-      const maxOrdre = books.length ? Math.max(...books.map(b => b.ordre || 0)) : 0;
-      const ref = await addDoc(collection(db, "romans"), { titre: 'Nouveau roman', resume: '', lienAchat: '', imageUrl: '', imagePath: '', ordre: maxOrdre + 1, createdAt: serverTimestamp() });
-      books.push({ _docId: ref.id, titre: 'Nouveau roman', resume: '', lienAchat: '', imageUrl: '', imagePath: '', ordre: maxOrdre + 1 });
-      render();
-      setTimeout(() => { const el = document.querySelector(`[data-docid="${ref.id}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
-    } catch(e) { showToast('Erreur lors de l\'ajout', true); }
-    btn.disabled = false;
+  window.addBook = () => {
+    const maxOrdre = books.length ? Math.max(...books.map(b => b.ordre || 0)) : 0;
+    const tempId = '_new_' + Date.now();
+    const newBook = { _docId: tempId, _isNew: true, titre: 'Nouveau roman', resume: '', lienAchat: '', imageUrl: '', imagePath: '', ordre: maxOrdre + 1 };
+    books.push(newBook);
+    render();
+    setTimeout(() => { const el = document.querySelector(`[data-docid="${tempId}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
   };
 
   window.saveBook = async (docId) => {
@@ -217,9 +213,18 @@
     const status = card.querySelector('.save-status');
     btn.disabled = true;
     try {
-      await updateDoc(doc(db, "romans", docId), { titre, resume, lienAchat, ordre });
       const b = books.find(b => b._docId === docId);
-      if (b) { b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; }
+      if (docId.startsWith('_new_')) {
+        const docRef = await addDoc(collection(db, "romans"), { titre, resume, lienAchat, ordre, imageUrl: '', imagePath: '', createdAt: serverTimestamp() });
+        if (b) { b._docId = docRef.id; b._isNew = false; b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; }
+        card.setAttribute('data-docid', docRef.id);
+        card.querySelectorAll('[onclick]').forEach(el => {
+          el.setAttribute('onclick', el.getAttribute('onclick').replaceAll(docId, docRef.id));
+        });
+      } else {
+        await updateDoc(doc(db, "romans", docId), { titre, resume, lienAchat, ordre });
+        if (b) { b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; }
+      }
       card.querySelector('h3').textContent = titre || 'Roman sans titre';
       status.textContent = 'Sauvegardé ✓'; status.classList.add('show');
       setTimeout(() => status.classList.remove('show'), 2500);
@@ -229,6 +234,11 @@
 
   window.deleteBook = async (docId) => {
     if (!confirm('Supprimer ce roman définitivement ?')) return;
+    if (docId.startsWith('_new_')) {
+      books = books.filter(b => b._docId !== docId);
+      document.querySelector(`[data-docid="${docId}"]`)?.remove();
+      return;
+    }
     try {
       const b = books.find(b => b._docId === docId);
       if (b?.imagePath) { try { await deleteObject(ref(storage, b.imagePath)); } catch(_) {} }
