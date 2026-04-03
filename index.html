@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JPC — Jean-Pierre Chiron</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Cinzel:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1a1614;
+      --cream: #f5f0ea;
+      --gold: #b89a5a;
+      --gold-light: #d4b97a;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Cormorant Garamond', serif;
+      overflow: hidden;
+    }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0.6;
+    }
+
+    /* Thin border frame */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 24px;
+      border: 1px solid var(--gold);
+      opacity: 0.4;
+      pointer-events: none;
+      z-index: 9;
+      animation: frameIn 1.8s ease forwards;
+    }
+
+    @keyframes frameIn {
+      from { opacity: 0; inset: 40px; }
+      to   { opacity: 0.4; inset: 24px; }
+    }
+
+    /* Decorative corner lines */
+    .corner {
+      position: fixed;
+      width: 40px;
+      height: 40px;
+      border-color: var(--gold);
+      border-style: solid;
+      opacity: 0;
+      animation: cornerIn 1.6s 0.4s ease forwards;
+      z-index: 11;
+    }
+    .corner--tl { top: 16px; left: 16px; border-width: 1px 0 0 1px; }
+    .corner--tr { top: 16px; right: 16px; border-width: 1px 1px 0 0; }
+    .corner--bl { bottom: 16px; left: 16px; border-width: 0 0 1px 1px; }
+    .corner--br { bottom: 16px; right: 16px; border-width: 0 1px 1px 0; }
+
+    @keyframes cornerIn {
+      from { opacity: 0; }
+      to   { opacity: 0.6; }
+    }
+
+    /* Main layout */
+    main {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      position: relative;
+    }
+
+    /* Thin gold horizontal rule above */
+    .rule {
+      width: 1px;
+      height: 80px;
+      background: linear-gradient(to bottom, transparent, var(--gold));
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: slideDown 1.2s 0.3s ease forwards;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: scaleY(0); transform-origin: top; }
+      to   { opacity: 1; transform: scaleY(1); transform-origin: top; }
+    }
+
+    /* Monogram */
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(6rem, 18vw, 14rem);
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: var(--ink);
+      line-height: 1;
+      opacity: 0;
+      animation: riseIn 1.4s 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      position: relative;
+    }
+
+    /* Gold underline accent */
+    h1::after {
+      content: '';
+      display: block;
+      height: 2px;
+      width: 0;
+      background: linear-gradient(to right, var(--gold), var(--gold-light), var(--gold));
+      margin: 16px auto 0;
+      animation: lineGrow 1s 1.8s ease forwards;
+    }
+
+    @keyframes lineGrow {
+      to { width: 100%; }
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Subtitle */
+    p.subtitle {
+      font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-top: 28px;
+      font-weight: 300;
+      opacity: 0;
+      animation: riseIn 1s 1.4s ease forwards;
+    }
+
+    /* Bottom rule */
+    .rule-bottom {
+      width: 1px;
+      height: 80px;
+      background: linear-gradient(to top, transparent, var(--gold));
+      margin-top: 32px;
+      opacity: 0;
+      animation: slideUp 1.2s 0.5s ease forwards;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: scaleY(0); transform-origin: bottom; }
+      to   { opacity: 1; transform: scaleY(1); transform-origin: bottom; }
+    }
+  </style>
+</head>
+<body>
+  <div class="corner corner--tl"></div>
+  <div class="corner corner--tr"></div>
+  <div class="corner corner--bl"></div>
+  <div class="corner corner--br"></div>
+
+  <main>
+    <div class="rule"></div>
+    <h1>JPC</h1>
+    <p class="subtitle">Jean-Pierre Chiron</p>
+    <div class="rule-bottom"></div>
+  </main>
+</body>
+</html>
