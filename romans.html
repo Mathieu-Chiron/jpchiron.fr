@@ -103,7 +103,7 @@
       try {
         const q = query(collection(db, "romans"), orderBy("ordre", "asc"));
         const snap = await getDocs(q);
-        const books = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const books = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(b => b.public === true);
         renderBooks(books);
       } catch(e) {
         document.getElementById('loading').innerHTML = '<p style="color:#c0392b;padding:40px">Erreur de connexion Firebase.<br>Vérifiez la configuration.</p>';

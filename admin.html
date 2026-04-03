@@ -211,21 +211,22 @@
     const resume = card.querySelector('.f-resume').value;
     const lienAchat = card.querySelector('.f-lien').value;
     const ordre = parseInt(card.querySelector('.f-ordre').value) || 1;
+    const isPublic = card.querySelector('.f-public').checked;
     const btn = card.querySelector('.btn-save');
     const status = card.querySelector('.save-status');
     btn.disabled = true;
     try {
       const b = books.find(b => b._docId === docId);
       if (docId.startsWith('_new_')) {
-        const docRef = await addDoc(collection(db, "romans"), { titre, resume, lienAchat, ordre, imageUrl: b?.imageUrl || '', imagePath: b?.imagePath || '', createdAt: serverTimestamp() });
-        if (b) { b._docId = docRef.id; b._isNew = false; b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; }
+        const docRef = await addDoc(collection(db, "romans"), { titre, resume, lienAchat, ordre, public: isPublic, imageUrl: b?.imageUrl || '', imagePath: b?.imagePath || '', createdAt: serverTimestamp() });
+        if (b) { b._docId = docRef.id; b._isNew = false; b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; b.public = isPublic; }
         card.setAttribute('data-docid', docRef.id);
         card.querySelectorAll('[onclick]').forEach(el => {
           el.setAttribute('onclick', el.getAttribute('onclick').replaceAll(docId, docRef.id));
         });
       } else {
-        await updateDoc(doc(db, "romans", docId), { titre, resume, lienAchat, ordre });
-        if (b) { b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; }
+        await updateDoc(doc(db, "romans", docId), { titre, resume, lienAchat, ordre, public: isPublic });
+        if (b) { b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; b.public = isPublic; }
       }
       card.querySelector('h3').textContent = titre || 'Roman sans titre';
       status.textContent = 'Sauvegardé ✓'; status.classList.add('show');
@@ -297,6 +298,7 @@
         <div class="book-editor-header" onclick="toggleCollapse('${b._docId}')">
           <h3>${esc(b.titre) || 'Roman sans titre'}</h3>
           <div class="book-editor-header-right">
+            ${b.public ? '<span class="badge" style="color:var(--gold)">● Publié</span>' : '<span class="badge">○ Brouillon</span>'}
             <span class="badge">Roman ${i+1}</span>
             <button class="btn-delete-book" onclick="event.stopPropagation(); deleteBook('${b._docId}')">Supprimer</button>
             <span class="collapse-icon">▾</span>
@@ -329,6 +331,10 @@
             <div class="field">
               <label>Ordre d'affichage</label>
               <input type="number" class="f-ordre" value="${b.ordre || i+1}" min="1" style="width:80px" />
+            </div>
+            <div class="field" style="flex-direction:row;align-items:center;gap:10px">
+              <input type="checkbox" class="f-public" id="pub-${b._docId}" ${b.public ? 'checked' : ''} style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer" />
+              <label for="pub-${b._docId}" style="cursor:pointer">Publié (visible sur la page Romans)</label>
             </div>
             <div class="btn-row">
               <button class="btn-save" onclick="saveBook('${b._docId}')">Sauvegarder</button>
