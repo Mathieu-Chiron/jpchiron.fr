@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Le monde de JP — Jean-Pierre Chiron</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Trocchi&display=swap" rel="stylesheet" />
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{--gold:#c9a84c;--cream:#f0ead8;--muted:rgba(240,234,216,0.75)}
@@ -15,10 +15,19 @@
     .nav-links a{font-size:0.72rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding-bottom:3px;border-bottom:1px solid transparent;transition:color 0.25s,border-color 0.25s}
     .nav-links a:hover,.nav-links a.active{color:var(--cream);border-bottom-color:var(--gold)}
     .nav-links a.nav-actu,.nav-links a.nav-actu:hover{color:#e05555!important}
-    main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px}
-    h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:300;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:20px}
+    main{flex:1;display:flex;flex-direction:column;align-items:center;padding:80px 40px}
+    h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:300;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:20px;text-align:center}
     .divider{width:40px;height:1px;background:var(--gold);margin:24px auto}
-    p{color:var(--muted);font-size:0.9rem;letter-spacing:0.06em;line-height:1.8}
+    p{color:var(--muted);font-size:0.9rem;letter-spacing:0.06em;line-height:1.8;text-align:center}
+    .quotes{display:flex;flex-direction:column;gap:56px;width:100%;max-width:720px;margin-bottom:72px}
+    .quote{font-family:'Trocchi',serif;font-style:italic;font-size:clamp(1rem,2vw,1.2rem);line-height:1.9;color:var(--cream);text-align:left}
+    .quote-author{display:block;margin-top:18px;font-family:'Inter',sans-serif;font-style:normal;font-size:0.7rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--gold);text-align:right}
+    .quotes-divider{width:100%;max-width:720px;height:1px;background:rgba(201,168,76,0.15);margin-bottom:72px}
+    .section{width:100%;max-width:720px;margin-top:72px}
+    .section-rule{width:100%;height:1px;background:rgba(201,168,76,0.15);margin-bottom:48px}
+    .section-title{font-family:'Trocchi',serif;font-size:clamp(1.4rem,3vw,2rem);font-weight:400;color:var(--cream);margin-bottom:28px;text-align:left}
+    .authors{font-family:'Inter',sans-serif;font-size:0.88rem;line-height:2.2;color:var(--muted);letter-spacing:0.04em;text-align:left}
+    .authors .sep{color:rgba(201,168,76,0.4);margin:0 6px}
     footer{text-align:center;padding:28px;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(240,234,216,0.45);border-top:1px solid rgba(201,168,76,0.1)}
     .btn-menu{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px}
     .btn-menu span{display:block;width:22px;height:1.5px;background:var(--cream);transition:transform 0.3s,opacity 0.3s}
@@ -49,7 +58,98 @@
   <main>
     <h1>Le monde de JP</h1>
     <div class="divider"></div>
-    <p>Cette page est en cours de construction.<br>Revenez bientôt.</p>
+
+    <div class="quotes">
+      <blockquote class="quote">
+        Chaque mot naît d'un visage de femme, d'un ou deux sentiments, d'une ou deux peurs, de quelques questions trop grandes pour moi.
+        Puis, muni d'une bougie, je guette les coïncidences.
+        <span class="quote-author">Leo Carax</span>
+      </blockquote>
+
+      <blockquote class="quote">
+        La seule façon d'écrire la vérité, c'est de présumer que ce qu'on couche sur papier ne sera jamais lu.
+        Ni par quelqu'un d'autre ni par soi-même plus tard.
+        Sinon, on se met à se justifier. Il faut voir le texte émerger comme un long rouleau d'encre de l'index de sa main droite&nbsp;; il faut voir sa main gauche l'effacer.
+        Impossible bien entendu.
+        Je dévide ma ligne, je dévide ma ligne, ce fil noir que je tisse à travers la page.
+        <span class="quote-author">Margaret Atwood</span>
+      </blockquote>
+    </div>
+
+    <div class="section">
+      <div class="section-rule"></div>
+      <h2 class="section-title">Auteurs sombres</h2>
+      <p class="authors">
+        Henning Mankell <span class="sep">|</span>
+        Franck Thilliez <span class="sep">|</span>
+        Jean-Christophe Grangé <span class="sep">|</span>
+        Terry Hayes <span class="sep">|</span>
+        Sandrine Colette <span class="sep">|</span>
+        Ghislain Gilberti <span class="sep">|</span>
+        Marcus Malte <span class="sep">|</span>
+        Sonja Delzongle <span class="sep">|</span>
+        R.J. Ellory <span class="sep">|</span>
+        James Ellroy <span class="sep">|</span>
+        Arnaldur Indridason <span class="sep">|</span>
+        Bernard Minier <span class="sep">|</span>
+        Georges Simenon <span class="sep">|</span>
+        Caryl Férey <span class="sep">|</span>
+        Pierre Lemaître <span class="sep">|</span>
+        Joël Dicker <span class="sep">|</span>
+        Mo Hayder <span class="sep">|</span>
+        Mikaël Ollivier <span class="sep">|</span>
+        Michael Connelly <span class="sep">|</span>
+        Thomas Harris <span class="sep">|</span>
+        Steve Mosby <span class="sep">|</span>
+        Catherine Fradier <span class="sep">|</span>
+        Dennis Lehane <span class="sep">|</span>
+        Camilla Läckberg <span class="sep">|</span>
+        Stieg Larsson <span class="sep">|</span>
+        Tom Rob Smith <span class="sep">|</span>
+        Jesse Kellerman <span class="sep">|</span>
+        Colin Harrison <span class="sep">|</span>
+        Jim Thompson <span class="sep">|</span>
+        Herbert Lieberman
+      </p>
+    </div>
+
+    <div class="section">
+      <div class="section-rule"></div>
+      <h2 class="section-title">Auteurs clairs</h2>
+      <p class="authors">
+        Christian Bobin <span class="sep">|</span>
+        Olivier Bourdeaut <span class="sep">|</span>
+        Cormac McCarthy <span class="sep">|</span>
+        John Irving <span class="sep">|</span>
+        William Boyd <span class="sep">|</span>
+        Joyce Carol Oates <span class="sep">|</span>
+        Philip Roth <span class="sep">|</span>
+        Ken Follett <span class="sep">|</span>
+        John Fante <span class="sep">|</span>
+        Sylvain Tesson <span class="sep">|</span>
+        Brigitte Giraud <span class="sep">|</span>
+        René Frégni <span class="sep">|</span>
+        Pierre Magnan <span class="sep">|</span>
+        Michel Houellebecq <span class="sep">|</span>
+        Tonino Benacquista <span class="sep">|</span>
+        Martin Winckler <span class="sep">|</span>
+        Emmanuel Carrère <span class="sep">|</span>
+        Stefan Zweig <span class="sep">|</span>
+        Laurent Gaudé <span class="sep">|</span>
+        Metin Arditi <span class="sep">|</span>
+        Jean-Paul Dubois <span class="sep">|</span>
+        William Styron <span class="sep">|</span>
+        Pat Conroy <span class="sep">|</span>
+        Bertina Henrichs <span class="sep">|</span>
+        Delphine de Vigan <span class="sep">|</span>
+        Pierre Lemaître <span class="sep">|</span>
+        Jean-Claude Izzo <span class="sep">|</span>
+        Claudie Gallay <span class="sep">|</span>
+        Jean M. Auel <span class="sep">|</span>
+        Douglas Kennedy
+      </p>
+    </div>
+
   </main>
   <footer>&copy; Jean-Pierre Chiron</footer>
 </body>
