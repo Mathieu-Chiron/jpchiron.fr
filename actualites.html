@@ -9,7 +9,13 @@
     :root{--gold:#c9a84c;--cream:#f0ead8;--muted:rgba(240,234,216,0.75)}
     html,body{height:100%}
     body{font-family:'Inter',sans-serif;background:#0a0a0a;color:var(--cream);min-height:100vh;display:flex;flex-direction:column}
-    nav{display:flex;align-items:center;justify-content:space-between;padding:36px 56px;border-bottom:1px solid rgba(201,168,76,0.15)}
+    nav{display:flex;align-items:center;justify-content:space-between;padding:36px 56px;border-bottom:1px solid rgba(201,168,76,0.15);position:relative}
+    .btn-menu{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px}
+    .btn-menu span{display:block;width:22px;height:1.5px;background:var(--cream);transition:transform 0.3s,opacity 0.3s}
+    .btn-menu.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+    .btn-menu.open span:nth-child(2){opacity:0}
+    .btn-menu.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+    .nav-links.open{display:flex}
     .nav-logo{font-size:0.85rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--cream);text-decoration:none}
     .nav-links{display:flex;gap:40px;list-style:none}
     .nav-links a{font-size:0.72rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding-bottom:3px;border-bottom:1px solid transparent;transition:color 0.25s,border-color 0.25s}
@@ -22,18 +28,25 @@
     a.event-link:hover{border-bottom-color:var(--gold)}
     .nav-links a.nav-actu,.nav-links a.nav-actu.active,.nav-links a.nav-actu:hover{color:#e05555!important}
     footer{text-align:center;padding:28px;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(240,234,216,0.45);border-top:1px solid rgba(201,168,76,0.1)}
-    @media(max-width:600px){nav{padding:24px 28px}.nav-links{gap:20px}}
+    @media(max-width:640px){
+      nav{padding:24px 28px}
+      .nav-links{display:none;position:absolute;top:100%;left:0;right:0;background:#0d0d0d;z-index:100;flex-direction:column;border-bottom:1px solid rgba(201,168,76,0.15)}
+      .nav-links li{border-top:1px solid rgba(201,168,76,0.1)}
+      .nav-links a{display:block;padding:18px 28px}
+      .btn-menu{display:flex}
+    }
   </style>
 </head>
 <body>
   <nav>
     <a class="nav-logo" href="index.html">JPC</a>
-    <ul class="nav-links">
+    <ul class="nav-links" id="navLinks">
       <li><a href="monde-de-jp.html">Le monde de JP</a></li>
       <li><a href="actualites.html" class="active nav-actu">Actualités</a></li>
       <li><a href="romans.html">Romans</a></li>
       <li><a href="contact.html">Contact</a></li>
     </ul>
+    <button class="btn-menu" id="btnMenu" onclick="this.classList.toggle('open');document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu"><span></span><span></span><span></span></button>
   </nav>
   <main>
     <h1>Actualités</h1>

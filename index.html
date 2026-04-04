@@ -48,7 +48,19 @@
       gap: 40px;
       padding: 36px 56px;
       list-style: none;
+      position: relative;
     }
+    .btn-menu{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px}
+    .btn-menu span{display:block;width:22px;height:1.5px;background:var(--cream);transition:transform 0.3s,opacity 0.3s}
+    .btn-menu.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+    .btn-menu.open span:nth-child(2){opacity:0}
+    .btn-menu.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+    .nav-mobile{display:none;position:absolute;top:100%;left:0;right:0;background:#0d0d0d;z-index:100;flex-direction:column;border-bottom:1px solid rgba(201,168,76,0.15)}
+    .nav-mobile.open{display:flex}
+    .nav-mobile a{display:block;padding:18px 28px;font-size:0.72rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--muted);text-decoration:none;border-bottom:1px solid rgba(201,168,76,0.1);border-left:none;transition:color 0.25s}
+    .nav-mobile a:last-child{border-bottom:none}
+    .nav-mobile a:hover{color:var(--cream)}
+    .nav-mobile a.nav-actu{color:#e05555!important}
 
     nav a {
       font-size: 0.72rem;
@@ -146,8 +158,10 @@
       color: rgba(240,234,216,0.45);
     }
 
-    @media (max-width: 600px) {
-      nav { padding: 24px 28px; gap: 24px; }
+    @media (max-width: 640px) {
+      nav { padding: 24px 28px; gap: 0; justify-content: flex-end; }
+      nav > a { display: none; }
+      .btn-menu { display: flex; }
       main { padding: 24px; }
     }
   </style>
@@ -159,6 +173,13 @@
     <a href="actualites.html" class="nav-actu">Actualités</a>
     <a href="romans.html">Romans</a>
     <a href="contact.html">Contact</a>
+    <button class="btn-menu" id="btnMenu" onclick="this.classList.toggle('open');document.getElementById('mobileMenu').classList.toggle('open')" aria-label="Menu"><span></span><span></span><span></span></button>
+    <div class="nav-mobile" id="mobileMenu">
+      <a href="monde-de-jp.html">Le monde de JP</a>
+      <a href="actualites.html" class="nav-actu">Actualités</a>
+      <a href="romans.html">Romans</a>
+      <a href="contact.html">Contact</a>
+    </div>
   </nav>
 
   <main>
