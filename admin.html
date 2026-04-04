@@ -41,8 +41,8 @@
     .preview-bar a { color: var(--gold); font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; }
 
     .btn-add-row { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
-    .btn-add { display: flex; align-items: center; gap: 10px; background: transparent; color: var(--cream); border: 1px solid var(--border); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 12px 24px; transition: border-color 0.2s, color 0.2s; }
-    .btn-add:hover { border-color: rgba(201,168,76,0.5); color: var(--gold); }
+    .btn-add { display: flex; align-items: center; gap: 10px; background: #f5e9c0; color: #0a0a0a; border: 1px solid #f5e9c0; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 12px 24px; transition: opacity 0.2s; }
+    .btn-add:hover { opacity: 0.85; }
     .btn-add:disabled { opacity: 0.4; cursor: not-allowed; }
     .btn-sort { background: transparent; color: var(--muted); border: 1px solid var(--border); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 12px 24px; transition: border-color 0.2s, color 0.2s; }
     .btn-sort:hover { border-color: rgba(201,168,76,0.4); color: var(--cream); }
@@ -75,8 +75,9 @@
     .fields { display: flex; flex-direction: column; gap: 16px; }
     .field { display: flex; flex-direction: column; gap: 6px; }
     label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
-    input[type=text], input[type=url], input[type=number], textarea { font-family: 'Inter', sans-serif; font-size: 0.9rem; color: var(--cream); background: #0a0a0a; border: 1px solid var(--border); padding: 10px 14px; outline: none; transition: border-color 0.2s; width: 100%; }
-    input[type=text]:focus, input[type=url]:focus, input[type=number]:focus, textarea:focus { border-color: rgba(201,168,76,0.5); }
+    input[type=text], input[type=url], input[type=number], input[type=date], textarea { font-family: 'Inter', sans-serif; font-size: 0.9rem; color: var(--cream); background: #0a0a0a; border: 1px solid var(--border); padding: 10px 14px; outline: none; transition: border-color 0.2s; width: 100%; }
+    input[type=text]:focus, input[type=url]:focus, input[type=number]:focus, input[type=date]:focus, textarea:focus { border-color: rgba(201,168,76,0.5); }
+    input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
     textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
     .btn-save { background: var(--gold); color: #0a0a0a; border: none; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase; padding: 11px 22px; transition: opacity 0.2s; font-weight: 500; }
     .btn-save:hover { opacity: 0.85; }
@@ -139,8 +140,19 @@
       </button>
       <button class="btn-sort" id="btnSortYear" onclick="toggleSortYear()">Trier par année</button>
       <button class="btn-sort" id="btnSortCustom" onclick="toggleSortCustom()">Tri custom</button>
+      <button class="btn-add" onclick="document.getElementById('pressSection').scrollIntoView({behavior:'smooth'})">↓ Articles de presse</button>
     </div>
     <div id="booksList"></div>
+
+    <div style="height:56px"></div>
+    <div class="section-title" id="pressSection">Articles de presse</div>
+    <div class="btn-add-row">
+      <button class="btn-add" id="btnAddPress" onclick="addPressArticle()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter un article
+      </button>
+    </div>
+    <div id="pressList"></div>
   </div>
 </div>
 
@@ -198,7 +210,7 @@
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('adminScreen').style.display = 'block';
       document.getElementById('loginInfo').textContent = user.email;
-      if (!booksLoaded) { booksLoaded = true; loadBooks(); }
+      if (!booksLoaded) { booksLoaded = true; loadBooks(); loadPressArticles(); }
     } else {
       booksLoaded = false;
       document.getElementById('loginScreen').style.display = 'flex';
@@ -377,6 +389,162 @@
         </div>
       </div>`).join('');
   }
+
+  // ── PRESS ARTICLES ──────────────────────────────────────────────────
+  let pressArticles = [];
+
+  async function loadPressArticles() {
+    try {
+      const q = query(collection(db, "presse"), orderBy("date", "desc"));
+      const snap = await getDocs(q);
+      pressArticles = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+      renderPress();
+    } catch(e) { showToast('Erreur chargement articles', true); }
+  }
+
+  window.addPressArticle = () => {
+    const tempId = '_press_' + Date.now();
+    pressArticles.unshift({ _docId: tempId, _isNew: true, date: '', texte: '', imageUrl: '', imagePath: '' });
+    renderPress();
+    setTimeout(() => { const el = document.querySelector(`[data-pressid="${tempId}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+  };
+
+  window.savePressArticle = async (docId) => {
+    const card = document.querySelector(`[data-pressid="${docId}"]`);
+    const date = card.querySelector('.fp-date').value;
+    const texte = card.querySelector('.fp-texte').value;
+    const videoUrl = card.querySelector('.fp-video').value.trim();
+    const btn = card.querySelector('.btn-save');
+    const status = card.querySelector('.save-status');
+    btn.disabled = true;
+    try {
+      const a = pressArticles.find(a => a._docId === docId);
+      if (docId.startsWith('_press_')) {
+        const docRef = await addDoc(collection(db, "presse"), { date, texte, videoUrl, imageUrl: a?.imageUrl || '', imagePath: a?.imagePath || '', createdAt: serverTimestamp() });
+        if (a) { a._docId = docRef.id; a._isNew = false; a.date = date; a.texte = texte; a.videoUrl = videoUrl; }
+        card.setAttribute('data-pressid', docRef.id);
+        card.querySelectorAll('[onclick]').forEach(el => {
+          el.setAttribute('onclick', el.getAttribute('onclick').replaceAll(docId, docRef.id));
+        });
+      } else {
+        await updateDoc(doc(db, "presse", docId), { date, texte, videoUrl });
+        if (a) { a.date = date; a.texte = texte; a.videoUrl = videoUrl; }
+      }
+      status.textContent = 'Sauvegardé ✓'; status.classList.add('show');
+      setTimeout(() => status.classList.remove('show'), 2500);
+    } catch(e) { showToast('Erreur de sauvegarde', true); }
+    btn.disabled = false;
+  };
+
+  window.deletePressArticle = async (docId) => {
+    if (!confirm('Supprimer cet article définitivement ?')) return;
+    if (docId.startsWith('_press_')) {
+      pressArticles = pressArticles.filter(a => a._docId !== docId);
+      document.querySelector(`[data-pressid="${docId}"]`)?.remove();
+      return;
+    }
+    try {
+      const a = pressArticles.find(a => a._docId === docId);
+      if (a?.imagePath) { try { await deleteObject(ref(storage, a.imagePath)); } catch(_) {} }
+      await deleteDoc(doc(db, "presse", docId));
+      pressArticles = pressArticles.filter(a => a._docId !== docId);
+      document.querySelector(`[data-pressid="${docId}"]`)?.remove();
+      showToast('Article supprimé');
+    } catch(e) { showToast('Erreur', true); }
+  };
+
+  window.uploadPressImage = async (docId, input) => {
+    const file = input.files[0]; if (!file) return;
+    const statusEl = document.getElementById('press-upload-status-' + docId);
+    const previewEl = document.getElementById('press-preview-' + docId);
+    statusEl.textContent = 'Envoi en cours…';
+    try {
+      const a = pressArticles.find(a => a._docId === docId);
+      if (a?.imagePath) { try { await deleteObject(ref(storage, a.imagePath)); } catch(_) {} }
+      const path = `presse/${docId}_${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, path);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      if (!docId.startsWith('_press_')) {
+        await updateDoc(doc(db, "presse", docId), { imageUrl: url, imagePath: path });
+      }
+      if (a) { a.imageUrl = url; a.imagePath = path; }
+      previewEl.innerHTML = `<img src="${url}" alt="Photo" /><input type="file" accept="image/*" onchange="uploadPressImage('${docId}', this)" />`;
+      document.getElementById('press-btn-remove-' + docId).style.display = 'block';
+      statusEl.textContent = ''; showToast('Photo mise à jour');
+    } catch(e) { statusEl.textContent = "Erreur d'upload."; }
+  };
+
+  window.removePressImage = async (docId) => {
+    if (!confirm('Supprimer la photo ?')) return;
+    try {
+      const a = pressArticles.find(a => a._docId === docId);
+      if (a?.imagePath) { try { await deleteObject(ref(storage, a.imagePath)); } catch(_) {} }
+      if (!docId.startsWith('_press_')) {
+        await updateDoc(doc(db, "presse", docId), { imageUrl: '', imagePath: '' });
+      }
+      if (a) { a.imageUrl = ''; a.imagePath = ''; }
+      const previewEl = document.getElementById('press-preview-' + docId);
+      previewEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="1"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Photo<br>(optionnel)</span><input type="file" accept="image/*" onchange="uploadPressImage('${docId}', this)" />`;
+      document.getElementById('press-btn-remove-' + docId).style.display = 'none';
+      showToast('Photo supprimée');
+    } catch(e) { showToast('Erreur', true); }
+  };
+
+  window.togglePressCollapse = (docId) => { document.querySelector(`[data-pressid="${docId}"]`).classList.toggle('collapsed'); };
+
+  function renderPress() {
+    const list = document.getElementById('pressList');
+    if (!pressArticles.length) { list.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;padding:20px 0">Aucun article. Cliquez sur "Ajouter un article".</p>'; return; }
+    const sorted = [...pressArticles].sort((a, b) => (b.date || '') > (a.date || '') ? 1 : -1);
+    list.innerHTML = sorted.map((a, i) => `
+      <div class="book-editor" data-pressid="${a._docId}">
+        <div class="book-editor-header" onclick="togglePressCollapse('${a._docId}')">
+          <h3>${a.date ? formatDate(a.date) : 'Article sans date'}</h3>
+          <div class="book-editor-header-right">
+            <span class="badge">Article ${i+1}</span>
+            <button class="btn-delete-book" onclick="event.stopPropagation(); deletePressArticle('${a._docId}')">Supprimer</button>
+            <span class="collapse-icon">▾</span>
+          </div>
+        </div>
+        <div class="book-editor-body" style="grid-template-columns:200px 1fr">
+          <div class="cover-zone">
+            <div class="cover-preview" id="press-preview-${a._docId}" style="aspect-ratio:4/3;width:200px">
+              ${a.imageUrl
+                ? `<img src="${a.imageUrl}" alt="Photo" /><input type="file" accept="image/*" onchange="uploadPressImage('${a._docId}', this)" />`
+                : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="1"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Photo<br>(optionnel)</span><input type="file" accept="image/*" onchange="uploadPressImage('${a._docId}', this)" />`}
+            </div>
+            <p class="cover-uploading" id="press-upload-status-${a._docId}"></p>
+            <button class="btn-remove-img" id="press-btn-remove-${a._docId}" onclick="removePressImage('${a._docId}')" style="display:${a.imageUrl ? 'block' : 'none'}">✕ Retirer la photo</button>
+          </div>
+          <div class="fields">
+            <div class="field">
+              <label>Date de l'article</label>
+              <input type="date" class="fp-date" value="${a.date || ''}" style="width:200px" />
+            </div>
+            <div class="field">
+              <label>Texte de l'article (optionnel)</label>
+              <textarea class="fp-texte" placeholder="Contenu de l'article…" style="min-height:160px">${esc(a.texte)}</textarea>
+            </div>
+            <div class="field">
+              <label>Lien vidéo (YouTube, optionnel)</label>
+              <input type="url" class="fp-video" value="${esc(a.videoUrl||'')}" placeholder="https://www.youtube.com/watch?v=…" />
+            </div>
+            <div class="btn-row">
+              <button class="btn-save" onclick="savePressArticle('${a._docId}')">Sauvegarder</button>
+              <span class="save-status"></span>
+            </div>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+  // ────────────────────────────────────────────────────────────────────
 
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function showToast(msg, isError=false) {
