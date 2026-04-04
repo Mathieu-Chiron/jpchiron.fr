@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Le monde de JP — Jean-Pierre Chiron</title>
+  <title>Contact — Jean-Pierre Chiron</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -18,6 +18,8 @@
     h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:300;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:20px}
     .divider{width:40px;height:1px;background:var(--gold);margin:24px auto}
     p{color:var(--muted);font-size:0.9rem;letter-spacing:0.06em;line-height:1.8}
+    a.email{color:var(--gold);text-decoration:none;border-bottom:1px solid transparent;transition:border-color 0.25s}
+    a.email:hover{border-bottom-color:var(--gold)}
     footer{text-align:center;padding:28px;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(240,234,216,0.45);border-top:1px solid rgba(201,168,76,0.1)}
     .nav-links a.nav-actu,.nav-links a.nav-actu:hover{color:#e05555!important} @media(max-width:600px){nav{padding:24px 28px}.nav-links{gap:20px}}
   </style>
@@ -26,16 +28,16 @@
   <nav>
     <a class="nav-logo" href="index.html">JPC</a>
     <ul class="nav-links">
-      <li><a href="monde-de-jp.html" class="active">Le monde de JP</a></li>
+      <li><a href="monde-de-jp.html">Le monde de JP</a></li>
       <li><a href="actualites.html" class="nav-actu">Actualités</a></li>
       <li><a href="romans.html">Romans</a></li>
-      <li><a href="contact.html">Contact</a></li>
+      <li><a href="contact.html" class="active">Contact</a></li>
     </ul>
   </nav>
   <main>
-    <h1>Le monde de JP</h1>
+    <h1>Contact</h1>
     <div class="divider"></div>
-    <p>Cette page est en cours de construction.<br>Revenez bientôt.</p>
+    <p>Quelle que soit la raison, cela me fera plaisir d'entendre parler de vous.<br>Voici mon email : <a class="email" href="mailto:jpchiron1@gmail.com">jpchiron1@gmail.com</a></p>
   </main>
   <footer>&copy; Jean-Pierre Chiron</footer>
 </body>

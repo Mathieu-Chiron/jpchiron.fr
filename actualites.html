@@ -17,7 +17,10 @@
     main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px}
     h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:300;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:20px}
     .divider{width:40px;height:1px;background:var(--gold);margin:24px auto}
-    p{color:var(--muted);font-size:0.9rem;letter-spacing:0.06em;line-height:1.8}
+    p{color:var(--muted);font-size:2.7rem;font-weight:300;letter-spacing:0.06em;line-height:1.4}
+    a.event-link{color:var(--gold);text-decoration:none;border-bottom:1px solid transparent;transition:border-color 0.25s}
+    a.event-link:hover{border-bottom-color:var(--gold)}
+    .nav-links a.nav-actu,.nav-links a.nav-actu.active,.nav-links a.nav-actu:hover{color:#e05555!important}
     footer{text-align:center;padding:28px;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(240,234,216,0.45);border-top:1px solid rgba(201,168,76,0.1)}
     @media(max-width:600px){nav{padding:24px 28px}.nav-links{gap:20px}}
   </style>
@@ -27,14 +30,15 @@
     <a class="nav-logo" href="index.html">JPC</a>
     <ul class="nav-links">
       <li><a href="monde-de-jp.html">Le monde de JP</a></li>
-      <li><a href="actualites.html" class="active">Actualités</a></li>
+      <li><a href="actualites.html" class="active nav-actu">Actualités</a></li>
       <li><a href="romans.html">Romans</a></li>
+      <li><a href="contact.html">Contact</a></li>
     </ul>
   </nav>
   <main>
     <h1>Actualités</h1>
     <div class="divider"></div>
-    <p>Les actualités arrivent bientôt.<br>Revenez nous voir.</p>
+    <p>En dédicace au <a class="event-link" href="https://quaisdupolar.com/" target="_blank" rel="noopener">Quai du Polar</a>, les 3, 4 et 5 avril 2026.</p>
   </main>
   <footer>&copy; Jean-Pierre Chiron</footer>
 </body>
