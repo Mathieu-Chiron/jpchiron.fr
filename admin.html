@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --gold: #c9a84c; --cream: #f0ead8; --muted: rgba(240,234,216,0.5); --border: rgba(201,168,76,0.15); --danger: #c0392b; --success: #27ae60; --panel: #111111; --panel2: #161616; }
+    :root { --gold: #c9a84c; --cream: #f0ead8; --muted: rgba(240,234,216,0.75); --border: rgba(201,168,76,0.15); --danger: #c0392b; --success: #27ae60; --panel: #111111; --panel2: #161616; }
     body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: var(--cream); min-height: 100vh; }
 
     header { background: #0d0d0d; border-bottom: 1px solid var(--border); padding: 20px 48px; display: flex; align-items: center; justify-content: space-between; }
@@ -40,9 +40,13 @@
     .preview-bar p { font-size: 0.75rem; color: var(--muted); letter-spacing: 0.04em; }
     .preview-bar a { color: var(--gold); font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; }
 
-    .btn-add { display: flex; align-items: center; gap: 10px; background: transparent; color: var(--cream); border: 1px solid var(--border); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 12px 24px; margin-bottom: 32px; transition: border-color 0.2s, color 0.2s; }
+    .btn-add-row { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+    .btn-add { display: flex; align-items: center; gap: 10px; background: transparent; color: var(--cream); border: 1px solid var(--border); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 12px 24px; transition: border-color 0.2s, color 0.2s; }
     .btn-add:hover { border-color: rgba(201,168,76,0.5); color: var(--gold); }
     .btn-add:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-sort { background: transparent; color: var(--muted); border: 1px solid var(--border); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 12px 24px; transition: border-color 0.2s, color 0.2s; }
+    .btn-sort:hover { border-color: rgba(201,168,76,0.4); color: var(--cream); }
+    .btn-sort.active { color: var(--gold); border-color: rgba(201,168,76,0.5); }
 
     /* CARD */
     .book-editor { background: var(--panel); border: 1px solid var(--border); margin-bottom: 16px; overflow: hidden; animation: slideIn 0.3s ease; }
@@ -128,10 +132,14 @@
       <a href="romans.html" target="_blank">Voir la page publique →</a>
     </div>
     <div class="section-title">Romans</div>
-    <button class="btn-add" id="btnAdd" onclick="addBook()">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Ajouter un roman
-    </button>
+    <div class="btn-add-row">
+      <button class="btn-add" id="btnAdd" onclick="addBook()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter un roman
+      </button>
+      <button class="btn-sort" id="btnSortYear" onclick="toggleSortYear()">Trier par année</button>
+      <button class="btn-sort" id="btnSortCustom" onclick="toggleSortCustom()">Tri custom</button>
+    </div>
     <div id="booksList"></div>
   </div>
 </div>
@@ -165,6 +173,25 @@
   const storage = getStorage(app);
   let books = [];
   let booksLoaded = false;
+  let sortMode = null; // null | 'year' | 'custom'
+
+  function getSorted() {
+    if (sortMode === 'year')   return [...books].sort((a, b) => (b.dateSortie || 0) - (a.dateSortie || 0));
+    if (sortMode === 'custom') return [...books].sort((a, b) => (a.ordre || 0) - (b.ordre || 0));
+    return books;
+  }
+  function updateSortButtons() {
+    document.getElementById('btnSortYear').classList.toggle('active', sortMode === 'year');
+    document.getElementById('btnSortCustom').classList.toggle('active', sortMode === 'custom');
+  }
+  window.toggleSortYear = () => {
+    sortMode = sortMode === 'year' ? null : 'year';
+    updateSortButtons(); render();
+  };
+  window.toggleSortCustom = () => {
+    sortMode = sortMode === 'custom' ? null : 'custom';
+    updateSortButtons(); render();
+  };
 
   onAuthStateChanged(auth, user => {
     if (user) {
@@ -199,7 +226,7 @@
   window.addBook = () => {
     const maxOrdre = books.length ? Math.max(...books.map(b => b.ordre || 0)) : 0;
     const tempId = '_new_' + Date.now();
-    const newBook = { _docId: tempId, _isNew: true, titre: 'Nouveau roman', resume: '', lienAchat: '', imageUrl: '', imagePath: '', ordre: maxOrdre + 1 };
+    const newBook = { _docId: tempId, _isNew: true, titre: 'Nouveau roman', resume: '', lienAchat: '', imageUrl: '', imagePath: '', ordre: maxOrdre + 1, dateSortie: null };
     books.push(newBook);
     render();
     setTimeout(() => { const el = document.querySelector(`[data-docid="${tempId}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
@@ -211,6 +238,7 @@
     const resume = card.querySelector('.f-resume').value;
     const lienAchat = card.querySelector('.f-lien').value;
     const ordre = parseInt(card.querySelector('.f-ordre').value) || 1;
+    const dateSortie = parseInt(card.querySelector('.f-annee').value) || null;
     const isPublic = card.querySelector('.f-public').checked;
     const btn = card.querySelector('.btn-save');
     const status = card.querySelector('.save-status');
@@ -218,15 +246,15 @@
     try {
       const b = books.find(b => b._docId === docId);
       if (docId.startsWith('_new_')) {
-        const docRef = await addDoc(collection(db, "romans"), { titre, resume, lienAchat, ordre, public: isPublic, imageUrl: b?.imageUrl || '', imagePath: b?.imagePath || '', createdAt: serverTimestamp() });
-        if (b) { b._docId = docRef.id; b._isNew = false; b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; b.public = isPublic; }
+        const docRef = await addDoc(collection(db, "romans"), { titre, resume, lienAchat, ordre, dateSortie, public: isPublic, imageUrl: b?.imageUrl || '', imagePath: b?.imagePath || '', createdAt: serverTimestamp() });
+        if (b) { b._docId = docRef.id; b._isNew = false; b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; b.dateSortie = dateSortie; b.public = isPublic; }
         card.setAttribute('data-docid', docRef.id);
         card.querySelectorAll('[onclick]').forEach(el => {
           el.setAttribute('onclick', el.getAttribute('onclick').replaceAll(docId, docRef.id));
         });
       } else {
-        await updateDoc(doc(db, "romans", docId), { titre, resume, lienAchat, ordre, public: isPublic });
-        if (b) { b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; b.public = isPublic; }
+        await updateDoc(doc(db, "romans", docId), { titre, resume, lienAchat, ordre, dateSortie, public: isPublic });
+        if (b) { b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; b.dateSortie = dateSortie; b.public = isPublic; }
       }
       card.querySelector('h3').textContent = titre || 'Roman sans titre';
       status.textContent = 'Sauvegardé ✓'; status.classList.add('show');
@@ -293,12 +321,13 @@
   function render() {
     const list = document.getElementById('booksList');
     if (!books.length) { list.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;padding:20px 0">Aucun roman. Cliquez sur "Ajouter un roman".</p>'; return; }
-    list.innerHTML = books.map((b, i) => `
+    list.innerHTML = getSorted().map((b, i) => `
       <div class="book-editor" data-docid="${b._docId}">
         <div class="book-editor-header" onclick="toggleCollapse('${b._docId}')">
           <h3>${esc(b.titre) || 'Roman sans titre'}</h3>
           <div class="book-editor-header-right">
             ${b.public ? '<span class="badge" style="color:var(--gold)">● Publié</span>' : '<span class="badge">○ Brouillon</span>'}
+            ${b.dateSortie ? `<span class="badge">${b.dateSortie}</span>` : ''}
             <span class="badge">Roman ${i+1}</span>
             <button class="btn-delete-book" onclick="event.stopPropagation(); deleteBook('${b._docId}')">Supprimer</button>
             <span class="collapse-icon">▾</span>
@@ -327,6 +356,10 @@
             <div class="field">
               <label>Lien d'achat (URL)</label>
               <input type="url" class="f-lien" value="${esc(b.lienAchat)}" placeholder="https://amazon.fr/…" />
+            </div>
+            <div class="field">
+              <label>Date de sortie (année)</label>
+              <input type="number" class="f-annee" value="${b.dateSortie || ''}" min="1900" max="2099" placeholder="${new Date().getFullYear()}" style="width:100px" />
             </div>
             <div class="field">
               <label>Ordre d'affichage</label>

@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --gold: #c9a84c; --cream: #f0ead8; --muted: rgba(240,234,216,0.5); --border: rgba(201,168,76,0.15); }
+    :root { --gold: #c9a84c; --cream: #f0ead8; --muted: rgba(240,234,216,0.75); --border: rgba(201,168,76,0.15); }
     html { scroll-behavior: smooth; }
     body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: var(--cream); min-height: 100vh; display: flex; flex-direction: column; }
 
@@ -40,7 +40,8 @@
 
     .book-info { padding: 20px 0 0; flex: 1; display: flex; flex-direction: column; }
     .book-title { font-size: 1rem; font-weight: 500; letter-spacing: 0.06em; margin-bottom: 4px; line-height: 1.4; }
-    .book-author { font-size: 0.72rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px; }
+    .book-author { font-size: 0.72rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 4px; }
+    .book-year { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.15em; margin-bottom: 12px; }
     .book-summary { font-size: 0.85rem; line-height: 1.8; color: var(--muted); flex: 1; margin-bottom: 18px; }
     .book-buy { display: inline-flex; align-items: center; gap: 8px; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); text-decoration: none; padding-bottom: 3px; border-bottom: 1px solid transparent; transition: color 0.25s, border-color 0.25s; align-self: flex-start; }
     .book-buy:hover { color: var(--cream); border-bottom-color: var(--gold); }
@@ -50,12 +51,14 @@
     .empty-state { text-align: center; padding: 120px 40px; color: var(--muted); }
     .empty-state p { font-size: 0.9rem; letter-spacing: 0.06em; line-height: 1.8; }
 
-    footer { text-align: center; padding: 28px; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(240,234,216,0.2); border-top: 1px solid var(--border); margin-top: auto; }
+    footer { text-align: center; padding: 28px; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(240,234,216,0.45); border-top: 1px solid var(--border); margin-top: auto; }
 
     @media (max-width: 640px) {
       nav { padding: 24px 28px; } .nav-links { gap: 20px; }
       header, .books-grid { padding-left: 28px; padding-right: 28px; }
-      .books-grid { grid-template-columns: 1fr; gap: 40px; }
+      .books-grid { grid-template-columns: 1fr; gap: 46px; }
+      .book-cover-wrap { width: 85%; margin: 0 auto; }
+      .book-title { font-size: 1.2rem; }
     }
   </style>
 </head>
@@ -104,6 +107,7 @@
         const q = query(collection(db, "romans"), orderBy("ordre", "asc"));
         const snap = await getDocs(q);
         const books = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(b => b.public === true);
+        books.sort((a, b) => (b.dateSortie || 0) - (a.dateSortie || 0));
         renderBooks(books);
       } catch(e) {
         document.getElementById('loading').innerHTML = '<p style="color:#c0392b;padding:40px">Erreur de connexion Firebase.<br>Vérifiez la configuration.</p>';
@@ -127,6 +131,7 @@
           <div class="book-info">
             <h2 class="book-title">${b.titre}</h2>
             <p class="book-author">Jean-Pierre Chiron</p>
+            ${b.dateSortie ? `<p class="book-year">${b.dateSortie}</p>` : ''}
             <p class="book-summary">${b.resume}</p>
             ${b.lienAchat
               ? `<a class="book-buy" href="${b.lienAchat}" target="_blank" rel="noopener">Acheter</a>`
