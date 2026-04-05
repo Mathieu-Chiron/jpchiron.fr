@@ -238,7 +238,7 @@
   window.addBook = () => {
     const maxOrdre = books.length ? Math.max(...books.map(b => b.ordre || 0)) : 0;
     const tempId = '_new_' + Date.now();
-    const newBook = { _docId: tempId, _isNew: true, titre: 'Nouveau roman', resume: '', lienAchat: '', imageUrl: '', imagePath: '', ordre: maxOrdre + 1, dateSortie: null };
+    const newBook = { _docId: tempId, _isNew: true, titre: 'Nouveau roman', resume: '', lienAmazon: '', lienFnac: '', lienDecitre: '', imageUrl: '', imagePath: '', ordre: maxOrdre + 1, dateSortie: null };
     books.push(newBook);
     render();
     setTimeout(() => { const el = document.querySelector(`[data-docid="${tempId}"]`); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
@@ -248,7 +248,9 @@
     const card = document.querySelector(`[data-docid="${docId}"]`);
     const titre = card.querySelector('.f-titre').value;
     const resume = card.querySelector('.f-resume').value;
-    const lienAchat = card.querySelector('.f-lien').value;
+    const lienAmazon = card.querySelector('.f-amazon').value;
+    const lienFnac = card.querySelector('.f-fnac').value;
+    const lienDecitre = card.querySelector('.f-decitre').value;
     const ordre = parseInt(card.querySelector('.f-ordre').value) || 1;
     const dateSortie = parseInt(card.querySelector('.f-annee').value) || null;
     const isPublic = card.querySelector('.f-public').checked;
@@ -258,15 +260,15 @@
     try {
       const b = books.find(b => b._docId === docId);
       if (docId.startsWith('_new_')) {
-        const docRef = await addDoc(collection(db, "romans"), { titre, resume, lienAchat, ordre, dateSortie, public: isPublic, imageUrl: b?.imageUrl || '', imagePath: b?.imagePath || '', createdAt: serverTimestamp() });
-        if (b) { b._docId = docRef.id; b._isNew = false; b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; b.dateSortie = dateSortie; b.public = isPublic; }
+        const docRef = await addDoc(collection(db, "romans"), { titre, resume, lienAmazon, lienFnac, lienDecitre, ordre, dateSortie, public: isPublic, imageUrl: b?.imageUrl || '', imagePath: b?.imagePath || '', createdAt: serverTimestamp() });
+        if (b) { b._docId = docRef.id; b._isNew = false; b.titre = titre; b.resume = resume; b.lienAmazon = lienAmazon; b.lienFnac = lienFnac; b.lienDecitre = lienDecitre; b.ordre = ordre; b.dateSortie = dateSortie; b.public = isPublic; }
         card.setAttribute('data-docid', docRef.id);
         card.querySelectorAll('[onclick]').forEach(el => {
           el.setAttribute('onclick', el.getAttribute('onclick').replaceAll(docId, docRef.id));
         });
       } else {
-        await updateDoc(doc(db, "romans", docId), { titre, resume, lienAchat, ordre, dateSortie, public: isPublic });
-        if (b) { b.titre = titre; b.resume = resume; b.lienAchat = lienAchat; b.ordre = ordre; b.dateSortie = dateSortie; b.public = isPublic; }
+        await updateDoc(doc(db, "romans", docId), { titre, resume, lienAmazon, lienFnac, lienDecitre, ordre, dateSortie, public: isPublic });
+        if (b) { b.titre = titre; b.resume = resume; b.lienAmazon = lienAmazon; b.lienFnac = lienFnac; b.lienDecitre = lienDecitre; b.ordre = ordre; b.dateSortie = dateSortie; b.public = isPublic; }
       }
       card.querySelector('h3').textContent = titre || 'Roman sans titre';
       status.textContent = 'Sauvegardé ✓'; status.classList.add('show');
@@ -366,8 +368,16 @@
               <textarea class="f-resume" placeholder="Résumé…">${esc(b.resume)}</textarea>
             </div>
             <div class="field">
-              <label>Lien d'achat (URL)</label>
-              <input type="url" class="f-lien" value="${esc(b.lienAchat)}" placeholder="https://amazon.fr/…" />
+              <label>Lien Amazon (URL)</label>
+              <input type="url" class="f-amazon" value="${esc(b.lienAmazon || b.lienAchat || '')}" placeholder="https://amazon.fr/…" />
+            </div>
+            <div class="field">
+              <label>Lien Fnac (URL, optionnel)</label>
+              <input type="url" class="f-fnac" value="${esc(b.lienFnac||'')}" placeholder="https://fnac.com/…" />
+            </div>
+            <div class="field">
+              <label>Lien Decitre (URL, optionnel)</label>
+              <input type="url" class="f-decitre" value="${esc(b.lienDecitre||'')}" placeholder="https://decitre.fr/…" />
             </div>
             <div class="field">
               <label>Date de sortie (année)</label>

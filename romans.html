@@ -49,7 +49,8 @@
     .book-author { font-size: 0.72rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 4px; }
     .book-year { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.15em; margin-bottom: 12px; }
     .book-summary { font-size: 0.85rem; line-height: 1.8; color: var(--muted); flex: 1; margin-bottom: 18px; }
-    .book-buy { display: inline-flex; align-items: center; gap: 8px; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); text-decoration: none; padding-bottom: 3px; border-bottom: 1px solid transparent; transition: color 0.25s, border-color 0.25s; align-self: flex-start; }
+    .book-buy-links { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+    .book-buy { display: inline-flex; align-items: center; gap: 8px; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cream); text-decoration: none; padding-bottom: 3px; border-bottom: 1px solid transparent; transition: color 0.25s, border-color 0.25s; }
     .book-buy:hover { color: var(--cream); border-bottom-color: var(--gold); }
     .book-buy::after { content: '→'; }
     .book-buy-disabled { opacity: 0.3; cursor: default; pointer-events: none; }
@@ -146,8 +147,12 @@
             <p class="book-author">Jean-Pierre Chiron</p>
             ${b.dateSortie ? `<p class="book-year">${b.dateSortie}</p>` : ''}
             <p class="book-summary">${b.resume}</p>
-            ${b.lienAchat
-              ? `<a class="book-buy" href="${b.lienAchat}" target="_blank" rel="noopener">Acheter</a>`
+            ${(b.lienAmazon || b.lienAchat || b.lienFnac || b.lienDecitre)
+              ? `<div class="book-buy-links">
+                  ${(b.lienAmazon || b.lienAchat) ? `<a class="book-buy" href="${b.lienAmazon || b.lienAchat}" target="_blank" rel="noopener">Amazon</a>` : ''}
+                  ${b.lienFnac ? `<a class="book-buy" href="${b.lienFnac}" target="_blank" rel="noopener">Fnac</a>` : ''}
+                  ${b.lienDecitre ? `<a class="book-buy" href="${b.lienDecitre}" target="_blank" rel="noopener">Decitre</a>` : ''}
+                </div>`
               : `<span class="book-buy book-buy-disabled">Bientôt disponible</span>`}
           </div>
         </article>`).join('');
