@@ -15,12 +15,25 @@
     .nav-links a{font-size:0.72rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--cream);font-weight:500;text-decoration:none;padding-bottom:3px;border-bottom:1px solid transparent;transition:color 0.25s,border-color 0.25s}
     .nav-links a:hover,.nav-links a.active{color:var(--cream);border-bottom-color:var(--gold)}
     .nav-links a.nav-actu,.nav-links a.nav-actu:hover{color:#e05555!important}
-    main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px}
+    main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 40px}
+    .contact-inner{display:flex;flex-direction:column;align-items:center;text-align:center;width:100%;max-width:800px}
+    .contact-inner.has-portrait{flex-direction:row;align-items:flex-start;text-align:left;gap:48px}
+    .contact-photo-landscape{width:100%;max-height:420px;object-fit:cover;display:block;margin-bottom:40px}
+    .contact-photo-portrait{width:50%;flex-shrink:0;object-fit:cover;display:block}
+    .contact-text{display:flex;flex-direction:column;align-items:center}
+    .contact-inner.has-portrait .contact-text{align-items:flex-start;justify-content:center}
     h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:300;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:20px}
     .divider{width:40px;height:1px;background:var(--gold);margin:24px auto}
+    .contact-inner.has-portrait .divider{margin:24px 0}
     p{color:var(--muted);font-size:0.9rem;letter-spacing:0.06em;line-height:1.8}
     a.email{color:var(--gold);text-decoration:none;border-bottom:1px solid transparent;transition:border-color 0.25s}
     a.email:hover{border-bottom-color:var(--gold)}
+    @media(max-width:640px){
+      .contact-inner.has-portrait{flex-direction:column;text-align:center}
+      .contact-photo-portrait{width:100%;max-height:360px}
+      .contact-inner.has-portrait .contact-text{align-items:center}
+      .contact-inner.has-portrait .divider{margin:24px auto}
+    }
     footer{text-align:center;padding:28px;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(240,234,216,0.45);border-top:1px solid rgba(201,168,76,0.1)}
     .btn-menu{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:4px}
     .btn-menu span{display:block;width:22px;height:1.5px;background:var(--cream);transition:transform 0.3s,opacity 0.3s}
@@ -50,10 +63,72 @@
     <button class="btn-menu" id="btnMenu" onclick="this.classList.toggle('open');document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu"><span></span><span></span><span></span></button>
   </nav>
   <main>
-    <h1>Contact</h1>
-    <div class="divider"></div>
-    <p>Quelle que soit la raison, cela me fera plaisir d'entendre parler de vous.<br>Voici mon email : <a class="email" href="mailto:jpchiron1@gmail.com">jpchiron1@gmail.com</a></p>
+    <div class="contact-inner" id="contactInner">
+      <div class="contact-text">
+        <h1>Contact</h1>
+        <div class="divider"></div>
+        <p>Quelle que soit la raison, cela me fera plaisir d'entendre parler de vous.<br>Voici mon email : <a class="email" href="mailto:jpchiron1@gmail.com">jpchiron1@gmail.com</a></p>
+      </div>
+    </div>
   </main>
   <footer>&copy; Jean-Pierre Chiron</footer>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCw5XJ3auEZ1CdHJnb3zyqQxDv4XqQ8pWw",
+    authDomain: "jpsite-1d0f6.firebaseapp.com",
+    projectId: "jpsite-1d0f6",
+    storageBucket: "jpsite-1d0f6.firebasestorage.app",
+    messagingSenderId: "923964453045",
+    appId: "1:923964453045:web:ff821d0772319219ee0efc"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  function applyPhoto(imageUrl, orientation) {
+    if (!imageUrl) return;
+    const inner = document.getElementById('contactInner');
+    const text = inner.querySelector('.contact-text');
+    if (orientation === 'portrait') {
+      const img = document.createElement('img');
+      img.src = imageUrl;
+      img.className = 'contact-photo-portrait';
+      img.alt = 'Jean-Pierre Chiron';
+      inner.classList.add('has-portrait');
+      inner.insertBefore(img, text);
+    } else {
+      const img = document.createElement('img');
+      img.src = imageUrl;
+      img.className = 'contact-photo-landscape';
+      img.alt = 'Jean-Pierre Chiron';
+      inner.insertBefore(img, text);
+    }
+  }
+
+  try {
+    const cached = JSON.parse(localStorage.getItem('jpsite_contact') || '{}');
+    if (cached.imageUrl) applyPhoto(cached.imageUrl, cached.orientation);
+  } catch(e) {}
+
+  async function loadContactPhoto() {
+    try {
+      const snap = await getDoc(doc(db, "settings", "contact"));
+      if (snap.exists()) {
+        const { imageUrl, orientation } = snap.data();
+        if (imageUrl) {
+          document.getElementById('contactInner').innerHTML = '<div class="contact-text"><h1>Contact</h1><div class="divider"></div><p>Quelle que soit la raison, cela me fera plaisir d\'entendre parler de vous.<br>Voici mon email : <a class="email" href="mailto:jpchiron1@gmail.com">jpchiron1@gmail.com</a></p></div>';
+          applyPhoto(imageUrl, orientation);
+          localStorage.setItem('jpsite_contact', JSON.stringify({ imageUrl, orientation }));
+        }
+      }
+    } catch(e) {}
+  }
+
+  loadContactPhoto();
+</script>
 </body>
 </html>

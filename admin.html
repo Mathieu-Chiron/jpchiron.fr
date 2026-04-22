@@ -86,6 +86,13 @@
     .save-status.show { opacity: 1; }
     .btn-row { display: flex; align-items: center; }
 
+    .wallpaper-panel { background: var(--panel); border: 1px solid var(--border); padding: 28px 24px; margin-bottom: 32px; display: grid; grid-template-columns: 220px 1fr; gap: 28px; align-items: start; }
+    .wallpaper-preview { border: 1px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 0.68rem; letter-spacing: 0.08em; cursor: pointer; position: relative; overflow: hidden; transition: border-color 0.2s; text-align: center; }
+    .wallpaper-preview:hover { border-color: rgba(201,168,76,0.4); }
+    .wallpaper-preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .wallpaper-preview input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    @media (max-width: 640px) { .wallpaper-panel { grid-template-columns: 1fr; } .wallpaper-preview { width: 100% !important; aspect-ratio: 4/3 !important; } }
+
     .toast { position: fixed; bottom: 28px; right: 28px; background: #1a1a1a; border: 1px solid var(--border); color: var(--cream); padding: 12px 20px; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 999; }
     .toast.show { opacity: 1; }
     .toast.error { border-color: var(--danger); color: var(--danger); }
@@ -153,6 +160,29 @@
       </button>
     </div>
     <div id="pressList"></div>
+
+    <div style="height:56px"></div>
+    <div class="section-title" id="contactSection">Photo — Page Contact</div>
+    <div class="wallpaper-panel">
+      <div>
+        <div class="wallpaper-preview" id="contact-photo-preview" style="aspect-ratio:4/3;width:220px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24" style="opacity:0.25"><rect x="3" y="3" width="18" height="18" rx="1"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          <span>Cliquer pour<br>ajouter une photo</span>
+          <input type="file" accept="image/*" onchange="uploadContactPhoto(this)" />
+        </div>
+        <p class="cover-uploading" id="contact-photo-status"></p>
+        <button class="btn-remove-img" id="btn-remove-contact-photo" onclick="removeContactPhoto()" style="display:none;margin-top:8px">✕ Retirer la photo</button>
+      </div>
+      <div class="fields">
+        <p style="font-size:0.78rem;color:var(--muted);line-height:1.8;letter-spacing:0.04em">
+          Si la photo est en <strong style="color:var(--cream)">paysage</strong>, elle s'affiche au-dessus du texte.<br>
+          Si elle est en <strong style="color:var(--cream)">portrait</strong>, elle s'affiche à gauche du texte (50%).
+        </p>
+        <div class="btn-row" style="margin-top:16px">
+          <button class="btn-save" onclick="saveContactPhoto()">Sauvegarder</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -162,8 +192,8 @@
   import { initializeApp }                          from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword,
            onAuthStateChanged }                     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, collection, getDocs,
-           addDoc, updateDoc, deleteDoc, doc,
+  import { getFirestore, collection, getDocs, getDoc,
+           addDoc, updateDoc, deleteDoc, setDoc, doc,
            orderBy, query, serverTimestamp }        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import { getStorage, ref, uploadBytes,
            getDownloadURL, deleteObject }           from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -210,7 +240,7 @@
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('adminScreen').style.display = 'block';
       document.getElementById('loginInfo').textContent = user.email;
-      if (!booksLoaded) { booksLoaded = true; loadBooks(); loadPressArticles(); }
+      if (!booksLoaded) { booksLoaded = true; loadBooks(); loadPressArticles(); loadContactPhoto(); }
     } else {
       booksLoaded = false;
       document.getElementById('loginScreen').style.display = 'flex';
@@ -555,6 +585,76 @@
     return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
   }
   // ────────────────────────────────────────────────────────────────────
+
+  // ── CONTACT PHOTO ────────────────────────────────────────────────────
+  let contactPhotoData = { imageUrl: '', imagePath: '', orientation: '' };
+
+  async function loadContactPhoto() {
+    try {
+      const snap = await getDoc(doc(db, "settings", "contact"));
+      if (snap.exists()) {
+        const data = snap.data();
+        contactPhotoData = { imageUrl: data.imageUrl || '', imagePath: data.imagePath || '', orientation: data.orientation || '' };
+        if (data.imageUrl) {
+          document.getElementById('contact-photo-preview').innerHTML = `<img src="${data.imageUrl}" alt="Photo contact" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" /><input type="file" accept="image/*" onchange="uploadContactPhoto(this)" />`;
+          document.getElementById('btn-remove-contact-photo').style.display = 'block';
+        }
+      }
+    } catch(e) {}
+  }
+
+  window.uploadContactPhoto = async (input) => {
+    const file = input.files[0]; if (!file) return;
+    const statusEl = document.getElementById('contact-photo-status');
+    statusEl.textContent = 'Envoi en cours…';
+    try {
+      if (contactPhotoData.imagePath) { try { await deleteObject(ref(storage, contactPhotoData.imagePath)); } catch(_) {} }
+      const orientation = await getImageOrientation(file);
+      const path = `contact/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, path);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      contactPhotoData = { imageUrl: url, imagePath: path, orientation };
+      document.getElementById('contact-photo-preview').innerHTML = `<img src="${url}" alt="Photo contact" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" /><input type="file" accept="image/*" onchange="uploadContactPhoto(this)" />`;
+      document.getElementById('btn-remove-contact-photo').style.display = 'block';
+      statusEl.textContent = `Orientation détectée : ${orientation === 'landscape' ? 'paysage' : 'portrait'}`;
+      showToast('Photo mise à jour');
+    } catch(e) { statusEl.textContent = "Erreur d'upload."; console.error(e); }
+  };
+
+  window.saveContactPhoto = async () => {
+    try {
+      await setDoc(doc(db, "settings", "contact"), contactPhotoData);
+      localStorage.setItem('jpsite_contact', JSON.stringify(contactPhotoData));
+      showToast('Photo de contact sauvegardée');
+    } catch(e) { showToast('Erreur', true); }
+  };
+
+  window.removeContactPhoto = async () => {
+    if (!confirm('Supprimer la photo de contact ?')) return;
+    try {
+      if (contactPhotoData.imagePath) { try { await deleteObject(ref(storage, contactPhotoData.imagePath)); } catch(_) {} }
+      await setDoc(doc(db, "settings", "contact"), { imageUrl: '', imagePath: '', orientation: '' });
+      localStorage.removeItem('jpsite_contact');
+      contactPhotoData = { imageUrl: '', imagePath: '', orientation: '' };
+      document.getElementById('contact-photo-preview').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24" style="opacity:0.25"><rect x="3" y="3" width="18" height="18" rx="1"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Cliquer pour<br>ajouter une photo</span><input type="file" accept="image/*" onchange="uploadContactPhoto(this)" />`;
+      document.getElementById('btn-remove-contact-photo').style.display = 'none';
+      document.getElementById('contact-photo-status').textContent = '';
+      showToast('Photo supprimée');
+    } catch(e) { showToast('Erreur', true); }
+  };
+
+  function getImageOrientation(file) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        resolve(img.naturalWidth >= img.naturalHeight ? 'landscape' : 'portrait');
+        URL.revokeObjectURL(img.src);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  }
+  // ─────────────────────────────────────────────────────────────────────
 
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function showToast(msg, isError=false) {
