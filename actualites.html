@@ -4,6 +4,7 @@
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Actualités — Jean-Pierre Chiron</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     :root{--gold:#c9a84c;--cream:#f0ead8;--muted:rgba(240,234,216,0.75)}
@@ -20,12 +21,32 @@
     .nav-links{display:flex;gap:40px;list-style:none}
     .nav-links a{font-size:0.72rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--cream);font-weight:500;text-decoration:none;padding-bottom:3px;border-bottom:1px solid transparent;transition:color 0.25s,border-color 0.25s}
     .nav-links a:hover,.nav-links a.active{color:var(--cream);border-bottom-color:var(--gold)}
-    main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px}
+    main{flex:1;display:flex;flex-direction:column;align-items:center;padding:80px 40px;gap:64px}
     h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:300;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:20px}
     .divider{width:40px;height:1px;background:var(--gold);margin:24px auto}
     p{color:var(--muted);font-size:2.7rem;font-weight:300;letter-spacing:0.06em;line-height:1.4}
     a.event-link{color:var(--gold);text-decoration:none;border-bottom:1px solid transparent;transition:border-color 0.25s}
     a.event-link:hover{border-bottom-color:var(--gold)}
+
+    /* DÉDICACE */
+    .dedicace{width:100%;max-width:800px;display:flex;flex-direction:column;gap:28px}
+    .dedicace-photo-landscape{width:100%;max-height:420px;object-fit:cover;display:block}
+    .dedicace-body{display:flex;flex-direction:row;gap:40px;align-items:flex-start}
+    .dedicace-body.no-portrait{flex-direction:column}
+    .dedicace-photo-portrait{width:40%;flex-shrink:0;object-fit:cover;display:block;max-height:520px}
+    .dedicace-text{flex:1;display:flex;flex-direction:column;gap:16px}
+    .dedicace-titre{font-size:clamp(1.2rem,2.5vw,1.8rem);font-weight:300;letter-spacing:0.12em;text-transform:uppercase;color:var(--cream)}
+    .dedicace-divider{width:40px;height:1px;background:var(--gold)}
+    .dedicace-texte{font-size:0.92rem;line-height:1.9;color:var(--muted)}
+    .dedicace-adresse-label{font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold)}
+    #dedicace-map{width:100%;height:280px;margin-top:8px;border:1px solid rgba(201,168,76,0.15)}
+
+    /* existing static content */
+    .static-content{text-align:center}
+    @media(max-width:640px){
+      .dedicace-body{flex-direction:column}
+      .dedicace-photo-portrait{width:100%;max-height:360px}
+    }
     .nav-links a.nav-actu,.nav-links a.nav-actu.active,.nav-links a.nav-actu:hover{color:#e05555!important}
     footer{text-align:center;padding:28px;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(240,234,216,0.45);border-top:1px solid rgba(201,168,76,0.1)}
     @media(max-width:640px){
@@ -50,10 +71,96 @@
     <button class="btn-menu" id="btnMenu" onclick="this.classList.toggle('open');document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu"><span></span><span></span><span></span></button>
   </nav>
   <main>
-    <h1>Actualités</h1>
-    <div class="divider"></div>
-    <p>En dédicace au <a class="event-link" href="https://quaisdupolar.com/" target="_blank" rel="noopener">Quai du Polar</a>, les 3, 4 et 5 avril 2026.</p>
+    <div class="dedicace" id="dedicaceBlock" style="display:none"></div>
+
+    <div class="static-content">
+      <h1>Actualités</h1>
+      <div class="divider"></div>
+      <p>En dédicace au <a class="event-link" href="https://quaisdupolar.com/" target="_blank" rel="noopener">Quai du Polar</a>, les 3, 4 et 5 avril 2026.</p>
+    </div>
   </main>
   <footer>&copy; Jean-Pierre Chiron</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCw5XJ3auEZ1CdHJnb3zyqQxDv4XqQ8pWw",
+    authDomain: "jpsite-1d0f6.firebaseapp.com",
+    projectId: "jpsite-1d0f6",
+    storageBucket: "jpsite-1d0f6.firebasestorage.app",
+    messagingSenderId: "923964453045",
+    appId: "1:923964453045:web:ff821d0772319219ee0efc"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  async function loadDedicace() {
+    try {
+      const snap = await getDoc(doc(db, "settings", "dedicace"));
+      if (!snap.exists()) return;
+      const d = snap.data();
+      if (!d.titre && !d.texte && !d.adresse && !d.imageUrl) return;
+
+      const block = document.getElementById('dedicaceBlock');
+      block.style.display = 'flex';
+
+      // Landscape photo: above everything
+      if (d.imageUrl && d.orientation === 'landscape') {
+        const img = document.createElement('img');
+        img.src = d.imageUrl;
+        img.className = 'dedicace-photo-landscape';
+        img.alt = '';
+        block.appendChild(img);
+      }
+
+      // Body: portrait photo (left 40%) + text
+      const body = document.createElement('div');
+      body.className = 'dedicace-body' + (!(d.imageUrl && d.orientation === 'portrait') ? ' no-portrait' : '');
+
+      if (d.imageUrl && d.orientation === 'portrait') {
+        const img = document.createElement('img');
+        img.src = d.imageUrl;
+        img.className = 'dedicace-photo-portrait';
+        img.alt = '';
+        body.appendChild(img);
+      }
+
+      const text = document.createElement('div');
+      text.className = 'dedicace-text';
+      if (d.titre) text.innerHTML += `<h2 class="dedicace-titre">${d.titre}</h2><div class="dedicace-divider"></div>`;
+      if (d.texte) text.innerHTML += `<p class="dedicace-texte">${d.texte.replace(/\n/g,'<br>')}</p>`;
+
+      if (d.adresse) {
+        text.innerHTML += `<p class="dedicace-adresse-label">Adresse</p><div id="dedicace-map"></div>`;
+        body.appendChild(text);
+        block.appendChild(body);
+        await showMap(d.adresse);
+      } else {
+        body.appendChild(text);
+        block.appendChild(body);
+      }
+    } catch(e) { console.warn('Dédicace:', e); }
+  }
+
+  async function showMap(adresse) {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(adresse)}&format=json&limit=1`);
+      const data = await res.json();
+      if (!data.length) return;
+      const { lat, lon, display_name } = data[0];
+      const map = L.map('dedicace-map', { zoomControl: true, scrollWheelZoom: false }).setView([lat, lon], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
+      L.marker([lat, lon]).addTo(map).bindPopup(display_name).openPopup();
+    } catch(e) {}
+  }
+
+  loadDedicace();
+</script>
 </body>
 </html>

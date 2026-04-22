@@ -183,6 +183,39 @@
         </div>
       </div>
     </div>
+
+    <div style="height:56px"></div>
+    <div class="section-title" id="dedicaceSection">Dédicace — Page Actualités</div>
+    <div class="wallpaper-panel">
+      <div>
+        <div class="wallpaper-preview" id="dedicace-photo-preview" style="aspect-ratio:4/3;width:220px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24" style="opacity:0.25"><rect x="3" y="3" width="18" height="18" rx="1"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          <span>Cliquer pour<br>ajouter une photo</span>
+          <input type="file" accept="image/*" onchange="uploadDedicacePhoto(this)" />
+        </div>
+        <p class="cover-uploading" id="dedicace-photo-status"></p>
+        <button class="btn-remove-img" id="btn-remove-dedicace-photo" onclick="removeDedicacePhoto()" style="display:none;margin-top:8px">✕ Retirer la photo</button>
+      </div>
+      <div class="fields">
+        <div class="field">
+          <label>Titre</label>
+          <input type="text" id="dedicace-titre" placeholder="Ex: Dédicace au Quai du Polar…" />
+        </div>
+        <div class="field">
+          <label>Texte</label>
+          <textarea id="dedicace-texte" placeholder="Informations sur la dédicace…" style="min-height:100px"></textarea>
+        </div>
+        <div class="field">
+          <label>Adresse</label>
+          <input type="text" id="dedicace-adresse" placeholder="Ex: 1 place de la Bourse, Lyon" />
+        </div>
+        <p style="font-size:0.62rem;color:var(--muted);letter-spacing:0.06em;margin-top:-8px">L'adresse sera affichée avec une carte OpenStreetMap.</p>
+        <div class="btn-row" style="margin-top:16px;gap:12px">
+          <button class="btn-save" onclick="saveDedicace()">Sauvegarder</button>
+          <button class="btn-sort" onclick="removeDedicace()" style="color:var(--danger);border-color:var(--danger)">Supprimer la dédicace</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -240,7 +273,7 @@
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('adminScreen').style.display = 'block';
       document.getElementById('loginInfo').textContent = user.email;
-      if (!booksLoaded) { booksLoaded = true; loadBooks(); loadPressArticles(); loadContactPhoto(); }
+      if (!booksLoaded) { booksLoaded = true; loadBooks(); loadPressArticles(); loadContactPhoto(); loadDedicace(); }
     } else {
       booksLoaded = false;
       document.getElementById('loginScreen').style.display = 'flex';
@@ -654,6 +687,84 @@
       img.src = URL.createObjectURL(file);
     });
   }
+  // ─────────────────────────────────────────────────────────────────────
+
+  // ── DÉDICACE ─────────────────────────────────────────────────────────
+  let dedicacePhotoData = { imageUrl: '', imagePath: '', orientation: '' };
+
+  async function loadDedicace() {
+    try {
+      const snap = await getDoc(doc(db, "settings", "dedicace"));
+      if (snap.exists()) {
+        const d = snap.data();
+        dedicacePhotoData = { imageUrl: d.imageUrl || '', imagePath: d.imagePath || '', orientation: d.orientation || '' };
+        if (d.imageUrl) {
+          document.getElementById('dedicace-photo-preview').innerHTML = `<img src="${d.imageUrl}" alt="Photo dédicace" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" /><input type="file" accept="image/*" onchange="uploadDedicacePhoto(this)" />`;
+          document.getElementById('btn-remove-dedicace-photo').style.display = 'block';
+        }
+        if (d.titre) document.getElementById('dedicace-titre').value = d.titre;
+        if (d.texte) document.getElementById('dedicace-texte').value = d.texte;
+        if (d.adresse) document.getElementById('dedicace-adresse').value = d.adresse;
+      }
+    } catch(e) {}
+  }
+
+  window.uploadDedicacePhoto = async (input) => {
+    const file = input.files[0]; if (!file) return;
+    const statusEl = document.getElementById('dedicace-photo-status');
+    statusEl.textContent = 'Envoi en cours…';
+    try {
+      if (dedicacePhotoData.imagePath) { try { await deleteObject(ref(storage, dedicacePhotoData.imagePath)); } catch(_) {} }
+      const orientation = await getImageOrientation(file);
+      const path = `dedicace/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, path);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      dedicacePhotoData = { imageUrl: url, imagePath: path, orientation };
+      document.getElementById('dedicace-photo-preview').innerHTML = `<img src="${url}" alt="Photo dédicace" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" /><input type="file" accept="image/*" onchange="uploadDedicacePhoto(this)" />`;
+      document.getElementById('btn-remove-dedicace-photo').style.display = 'block';
+      statusEl.textContent = `Orientation : ${orientation === 'landscape' ? 'paysage' : 'portrait'}`;
+      showToast('Photo mise à jour');
+    } catch(e) { statusEl.textContent = "Erreur d'upload."; }
+  };
+
+  window.removeDedicacePhoto = async () => {
+    if (!confirm('Supprimer la photo ?')) return;
+    try {
+      if (dedicacePhotoData.imagePath) { try { await deleteObject(ref(storage, dedicacePhotoData.imagePath)); } catch(_) {} }
+      dedicacePhotoData = { imageUrl: '', imagePath: '', orientation: '' };
+      document.getElementById('dedicace-photo-preview').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24" style="opacity:0.25"><rect x="3" y="3" width="18" height="18" rx="1"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Cliquer pour<br>ajouter une photo</span><input type="file" accept="image/*" onchange="uploadDedicacePhoto(this)" />`;
+      document.getElementById('btn-remove-dedicace-photo').style.display = 'none';
+      document.getElementById('dedicace-photo-status').textContent = '';
+      showToast('Photo supprimée');
+    } catch(e) { showToast('Erreur', true); }
+  };
+
+  window.saveDedicace = async () => {
+    const titre = document.getElementById('dedicace-titre').value.trim();
+    const texte = document.getElementById('dedicace-texte').value.trim();
+    const adresse = document.getElementById('dedicace-adresse').value.trim();
+    try {
+      await setDoc(doc(db, "settings", "dedicace"), { ...dedicacePhotoData, titre, texte, adresse });
+      showToast('Dédicace sauvegardée');
+    } catch(e) { showToast('Erreur', true); }
+  };
+
+  window.removeDedicace = async () => {
+    if (!confirm('Supprimer toute la dédicace ?')) return;
+    try {
+      if (dedicacePhotoData.imagePath) { try { await deleteObject(ref(storage, dedicacePhotoData.imagePath)); } catch(_) {} }
+      await setDoc(doc(db, "settings", "dedicace"), { imageUrl: '', imagePath: '', orientation: '', titre: '', texte: '', adresse: '' });
+      dedicacePhotoData = { imageUrl: '', imagePath: '', orientation: '' };
+      document.getElementById('dedicace-photo-preview').innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24" style="opacity:0.25"><rect x="3" y="3" width="18" height="18" rx="1"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Cliquer pour<br>ajouter une photo</span><input type="file" accept="image/*" onchange="uploadDedicacePhoto(this)" />`;
+      document.getElementById('btn-remove-dedicace-photo').style.display = 'none';
+      document.getElementById('dedicace-photo-status').textContent = '';
+      document.getElementById('dedicace-titre').value = '';
+      document.getElementById('dedicace-texte').value = '';
+      document.getElementById('dedicace-adresse').value = '';
+      showToast('Dédicace supprimée');
+    } catch(e) { showToast('Erreur', true); }
+  };
   // ─────────────────────────────────────────────────────────────────────
 
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
